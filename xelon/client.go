@@ -28,7 +28,8 @@ type Client struct {
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
-	Tenant *TenantService
+	LoadBalancer *LoadBalancerService
+	Tenant       *TenantService
 }
 
 type service struct {
@@ -48,6 +49,7 @@ func NewClient(token string) *Client {
 	c.SetBaseURL(defaultBaseURL)
 	c.common.client = c
 
+	c.LoadBalancer = (*LoadBalancerService)(&c.common)
 	c.Tenant = (*TenantService)(&c.common)
 
 	return c
