@@ -11,7 +11,7 @@ const tenantBasePath = "tenant"
 type TenantService service
 
 type Tenant struct {
-	TenantIdentifier string `json:"tenant_identifier"`
+	TenantID string `json:"tenant_identifier"`
 }
 
 // Get provides information about user especially tenant id.

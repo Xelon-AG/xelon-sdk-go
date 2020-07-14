@@ -13,10 +13,31 @@ type LoadBalancerService service
 
 // LoadBalancer represents a Xelon load balancer.
 type LoadBalancer struct {
-	ID      int    `json:"id,omitempty"`
-	LocalID string `json:"local_id,omitempty"`
-	Name    string `json:"name,omitempty"`
-	Type    int    `json:"type,omitempty"`
+	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
+	Health          string                       `json:"health,omitempty"`
+	HealthCheck     LoadBalancerHealthCheck      `json:"health_check,omitempty"`
+	ID              int                          `json:"id,omitempty"`
+	InternalIP      string                       `json:"internalIp,omitempty"`
+	IP              string                       `json:"ip,omitempty"`
+	LocalID         string                       `json:"local_id,omitempty"`
+	Name            string                       `json:"name,omitempty"`
+	Type            int                          `json:"type,omitempty"`
+}
+
+// LoadBalancerForwardingRule represents a Xelon load balancer forwarding rule.
+type LoadBalancerForwardingRule struct {
+	IP    string `json:"ip,omitempty"`
+	Ports []int  `json:"ports,omitempty"`
+}
+
+// LoadBalancerHealthCheck represents a Xelon load balancer health check.
+type LoadBalancerHealthCheck struct {
+	BadThreshold  int    `json:"bad_threshold,omitempty"`
+	GoodThreshold int    `json:"good_threshold,omitempty"`
+	Interval      int    `json:"interval,omitempty"`
+	Path          string `json:"path,omitempty"`
+	Port          int    `json:"port,omitempty"`
+	Timeout       int    `json:"timeout,omitempty"`
 }
 
 type LoadBalancerCreateRequest struct {
@@ -25,8 +46,8 @@ type LoadBalancerCreateRequest struct {
 	Type     int      `json:"type,omitempty"`
 }
 
-type LoadBalancerCreateResponse struct {
-	Message string `json:"message,omitempty"`
+type LoadBalancerUpdateForwardingRulesRequest struct {
+	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
 }
 
 // List provides information about load balancers.
@@ -72,27 +93,27 @@ func (s *LoadBalancerService) Get(ctx context.Context, tenantID, localID string)
 }
 
 // Create makes a new load balancer with given payload.
-func (s *LoadBalancerService) Create(ctx context.Context, tenantID string, loadBalancerCreateRequest *LoadBalancerCreateRequest) (*LoadBalancerCreateResponse, *http.Response, error) {
+func (s *LoadBalancerService) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequest) (*APIResponse, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
-	if loadBalancerCreateRequest == nil {
+	if createRequest == nil {
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
 
 	path := fmt.Sprintf("%v/%v", tenantID, loadBalancerBasePath)
-	req, err := s.client.NewRequest(http.MethodPost, path, loadBalancerCreateRequest)
+	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	loadBalancerCreateResponse := new(LoadBalancerCreateResponse)
-	resp, err := s.client.Do(ctx, req, loadBalancerCreateResponse)
+	apiResponse := new(APIResponse)
+	resp, err := s.client.Do(ctx, req, apiResponse)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return loadBalancerCreateResponse, resp, nil
+	return apiResponse, resp, nil
 }
 
 // Delete removes a load balancer.
@@ -108,4 +129,27 @@ func (s *LoadBalancerService) Delete(ctx context.Context, tenantID, localID stri
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+func (s *LoadBalancerService) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequest) (*APIResponse, *http.Response, error) {
+	if tenantID == "" || localID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+	if updateRequest == nil {
+		return nil, nil, ErrEmptyPayloadNotAllowed
+	}
+
+	path := fmt.Sprintf("%v/%v/%v/forwardingRules", tenantID, loadBalancerBasePath, localID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	apiResponse := new(APIResponse)
+	resp, err := s.client.Do(ctx, req, apiResponse)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return apiResponse, resp, nil
 }
