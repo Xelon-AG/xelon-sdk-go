@@ -61,6 +61,11 @@ func (c *Client) SetBaseURL(baseURL string) {
 	c.BaseURL = parsedURL
 }
 
+// SetUserAgent overrides the default UserAgent.
+func (c *Client) SetUserAgent(ua string) {
+	c.UserAgent = ua
+}
+
 // NewRequest creates an API request. A relative URL can be provided in urlStr, in which case it is resolved
 // relative to the BaseURL of the Client. Relative URLs should always be specified without a preceding slash.
 // If specified, the value pointed to by body is JSON encoded and included as the request body.
