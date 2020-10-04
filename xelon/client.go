@@ -39,7 +39,7 @@ type service struct {
 // NewClient returns a new Xelon API client. To use API methods provide the token.
 func NewClient(token string) *Client {
 	httpClient := &http.Client{
-		Timeout: time.Second * 15,
+		Timeout: 1 * time.Minute,
 	}
 	c := &Client{
 		client:    httpClient,
