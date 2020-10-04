@@ -38,13 +38,6 @@ test:
 	@go test -v -cover -coverprofile=$(BUILD_DIR)/coverage.out ./...
 
 
-## build: Compile packages and dependencies.
-.PHONY: build
-build:
-	@echo "==> Compiling packages..."
-	@go build -o /dev/null ./...
-
-
 help: Makefile
 	@echo "Usage: make <command>"
 	@echo ""
