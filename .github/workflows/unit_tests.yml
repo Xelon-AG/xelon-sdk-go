@@ -28,7 +28,7 @@ jobs:
           path: |
             ~/go/pkg/mod
             .bin
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ matrix.go-version }}
           restore-keys: ${{ runner.os }}-go-
 
       - name: Lint
