@@ -63,16 +63,16 @@ func (s *PersistentStorageService) Get(ctx context.Context, tenantID, localID st
 	return persistentStorage, resp, nil
 }
 
-func (s *PersistentStorageService) Create(ctx context.Context, tenantID string, createRequst *PersistentStorageCreateRequest) (*APIResponse, *http.Response, error) {
+func (s *PersistentStorageService) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
-	if createRequst == nil {
+	if createRequest == nil {
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
 
 	path := fmt.Sprintf("%v/%v", tenantID, persistentStorageBasePath)
-	req, err := s.client.NewRequest(http.MethodPost, path, createRequst)
+	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
