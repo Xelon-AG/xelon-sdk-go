@@ -8,7 +8,7 @@ import (
 
 const persistentStorageBasePath = "persistentStorage"
 
-type PersistentStorageService service
+type PersistentStoragesService service
 
 type PersistentStorage struct {
 	Capacity int    `json:"capacity,omitempty"`
@@ -23,7 +23,7 @@ type PersistentStorageCreateRequest struct {
 	Size int `json:"size,omitempty"`
 }
 
-func (s *PersistentStorageService) List(ctx context.Context, tenantID string) ([]PersistentStorage, *http.Response, error) {
+func (s *PersistentStoragesService) List(ctx context.Context, tenantID string) ([]PersistentStorage, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -43,7 +43,7 @@ func (s *PersistentStorageService) List(ctx context.Context, tenantID string) ([
 	return persistentStorages, resp, nil
 }
 
-func (s *PersistentStorageService) Get(ctx context.Context, tenantID, localID string) (*PersistentStorage, *http.Response, error) {
+func (s *PersistentStoragesService) Get(ctx context.Context, tenantID, localID string) (*PersistentStorage, *http.Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -63,7 +63,7 @@ func (s *PersistentStorageService) Get(ctx context.Context, tenantID, localID st
 	return persistentStorage, resp, nil
 }
 
-func (s *PersistentStorageService) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *http.Response, error) {
+func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -86,7 +86,7 @@ func (s *PersistentStorageService) Create(ctx context.Context, tenantID string, 
 	return apiResponse, resp, nil
 }
 
-func (s *PersistentStorageService) Delete(ctx context.Context, tenantID, localID string) (*http.Response, error) {
+func (s *PersistentStoragesService) Delete(ctx context.Context, tenantID, localID string) (*http.Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, ErrEmptyArgument
 	}

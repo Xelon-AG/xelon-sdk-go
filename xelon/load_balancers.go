@@ -8,8 +8,8 @@ import (
 
 const loadBalancerBasePath = "loadBalancer"
 
-// LoadBalancerService handles communication with the load balancer related methods of the Xelon API.
-type LoadBalancerService service
+// LoadBalancersService handles communication with the load balancer related methods of the Xelon API.
+type LoadBalancersService service
 
 // LoadBalancer represents a Xelon load balancer.
 type LoadBalancer struct {
@@ -52,7 +52,7 @@ type LoadBalancerUpdateForwardingRulesRequest struct {
 }
 
 // List provides information about load balancers.
-func (s *LoadBalancerService) List(ctx context.Context, tenantID string) ([]LoadBalancer, *http.Response, error) {
+func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]LoadBalancer, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -73,7 +73,7 @@ func (s *LoadBalancerService) List(ctx context.Context, tenantID string) ([]Load
 }
 
 // Get provides information about a load balancer identified by local id.
-func (s *LoadBalancerService) Get(ctx context.Context, tenantID, localID string) (*LoadBalancer, *http.Response, error) {
+func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string) (*LoadBalancer, *http.Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -94,7 +94,7 @@ func (s *LoadBalancerService) Get(ctx context.Context, tenantID, localID string)
 }
 
 // Create makes a new load balancer with given payload.
-func (s *LoadBalancerService) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequest) (*APIResponse, *http.Response, error) {
+func (s *LoadBalancersService) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequest) (*APIResponse, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -118,7 +118,7 @@ func (s *LoadBalancerService) Create(ctx context.Context, tenantID string, creat
 }
 
 // Delete removes a load balancer.
-func (s *LoadBalancerService) Delete(ctx context.Context, tenantID, localID string) (*http.Response, error) {
+func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID string) (*http.Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -132,7 +132,7 @@ func (s *LoadBalancerService) Delete(ctx context.Context, tenantID, localID stri
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *LoadBalancerService) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequest) (*APIResponse, *http.Response, error) {
+func (s *LoadBalancersService) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequest) (*APIResponse, *http.Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
