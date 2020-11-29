@@ -23,6 +23,10 @@ type PersistentStorageCreateRequest struct {
 	Size int `json:"size,omitempty"`
 }
 
+type PersistentStorageAttachDetachRequest struct {
+	ServerID []string `json:"server_id"`
+}
+
 func (s *PersistentStoragesService) List(ctx context.Context, tenantID string) ([]PersistentStorage, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
@@ -98,4 +102,48 @@ func (s *PersistentStoragesService) Delete(ctx context.Context, tenantID, localI
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+func (s *PersistentStoragesService) AttachToDevice(ctx context.Context, tenantID, localID string, attachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *http.Response, error) {
+	if tenantID == "" || localID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+	if attachRequest == nil {
+		return nil, nil, ErrEmptyPayloadNotAllowed
+	}
+
+	path := fmt.Sprintf("%v/%v/%v/addToVirtualMachine", tenantID, persistentStorageBasePath, localID)
+	req, err := s.client.NewRequest(http.MethodPost, path, attachRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	apiResponse := new(APIResponse)
+	resp, err := s.client.Do(ctx, req, apiResponse)
+	if err != nil {
+		return nil, resp, err
+	}
+	return apiResponse, resp, nil
+}
+
+func (s *PersistentStoragesService) DetachFromDevice(ctx context.Context, tenantID, localID string, detachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *http.Response, error) {
+	if tenantID == "" || localID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+	if detachRequest == nil {
+		return nil, nil, ErrEmptyPayloadNotAllowed
+	}
+
+	path := fmt.Sprintf("%v/%v/%v/removeFromVirtualMachine", tenantID, persistentStorageBasePath, localID)
+	req, err := s.client.NewRequest(http.MethodPost, path, detachRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	apiResponse := new(APIResponse)
+	resp, err := s.client.Do(ctx, req, apiResponse)
+	if err != nil {
+		return nil, resp, err
+	}
+	return apiResponse, resp, nil
 }
