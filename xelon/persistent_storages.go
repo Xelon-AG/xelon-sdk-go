@@ -18,6 +18,7 @@ type PersistentStorage struct {
 	LocalID         string           `json:"local_id,omitempty"`
 	Name            string           `json:"name,omitempty"`
 	Type            int              `json:"type,omitempty"`
+	UUID            string           `json:"uuid,omitempty"`
 }
 
 type BlockStorage struct {
@@ -27,10 +28,9 @@ type BlockStorage struct {
 }
 
 type AssignedServer struct {
-	LocalVMID        string `json:"localvmid,omitempty"`
-	PersistentDiskID int    `json:"persistent_disk_id"`
-	State            int    `json:"state,omitempty"`
-	VMHostName       string `json:"vmhostname,omitempty"`
+	LocalVMID  string `json:"localvmid,omitempty"`
+	State      int    `json:"state,omitempty"`
+	VMHostName string `json:"vmhostname,omitempty"`
 }
 
 type PersistentStorageCreateRequest struct {
