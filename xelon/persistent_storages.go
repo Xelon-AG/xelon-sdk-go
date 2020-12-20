@@ -12,19 +12,13 @@ type PersistentStoragesService service
 
 type PersistentStorage struct {
 	AssignedServers []AssignedServer `json:"assigned_servers,omitempty"`
-	BlockStorage    BlockStorage     `json:"block_storage,omitempty"`
 	Capacity        int              `json:"capacity,omitempty"`
+	Formatted       int              `json:"formatted,omitempty"`
 	ID              int              `json:"id,omitempty"`
 	LocalID         string           `json:"local_id,omitempty"`
 	Name            string           `json:"name,omitempty"`
 	Type            int              `json:"type,omitempty"`
 	UUID            string           `json:"uuid,omitempty"`
-}
-
-type BlockStorage struct {
-	ID      int    `json:"id,omitempty"`
-	LocalID string `json:"local_id,omitempty"`
-	Status  int    `json:"status,omitempty"`
 }
 
 type AssignedServer struct {
