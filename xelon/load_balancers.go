@@ -26,8 +26,10 @@ type LoadBalancer struct {
 
 // LoadBalancerForwardingRule represents a Xelon load balancer forwarding rule.
 type LoadBalancerForwardingRule struct {
-	IP    string `json:"ip,omitempty"`
-	Ports []int  `json:"ports,omitempty"`
+	ID    int      `json:"id,omitempty"`
+	IP    []string `json:"ip,omitempty"`
+	Ports []int    `json:"ports,omitempty"`
+	Type  string   `json:"type,omitempty"`
 }
 
 // LoadBalancerHealthCheck represents a Xelon load balancer health check.
