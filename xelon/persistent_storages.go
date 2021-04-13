@@ -76,6 +76,26 @@ func (s *PersistentStoragesService) Get(ctx context.Context, tenantID, localID s
 	return persistentStorage, resp, nil
 }
 
+func (s *PersistentStoragesService) GetByName(ctx context.Context, tenantID, name string) (*PersistentStorage, *http.Response, error) {
+	if tenantID == "" || name == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v/query?name=%v", tenantID, persistentStorageBasePath, name)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	persistentStorage := new(PersistentStorage)
+	resp, err := s.client.Do(ctx, req, persistentStorage)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return persistentStorage, resp, nil
+}
+
 func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *http.Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
