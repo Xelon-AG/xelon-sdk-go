@@ -14,8 +14,13 @@ import (
 )
 
 const (
-	defaultBaseURL   = "https://vdc.xelon.ch/api/service/"
-	defaultUserAgent = "xelon-sdk-go"
+	libraryVersion = "1.0.0"
+
+	defaultBaseURL   = "https://hq.xelon.ch/api/service/"
+	defaultMediaType = "application/json"
+	defaultUserAgent = "xelon-sdk-go/" + libraryVersion
+
+	headerStackifyID = "X-StackifyID"
 )
 
 // A Client manages communication with the Xelon API.
@@ -36,6 +41,13 @@ type Client struct {
 
 type service struct {
 	client *Client
+}
+
+// Response is a Xelon response. This wraps the standard http.Response.
+type Response struct {
+	*http.Response
+
+	StackifyID string // StackifyID returned from the API, useful to contact support.
 }
 
 // NewClient returns a new Xelon API client. To use API methods provide the token.
@@ -98,8 +110,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if req.Header.Get("Authorization") == "" {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
 	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", defaultMediaType)
+	req.Header.Set("Content-Type", defaultMediaType)
 	req.Header.Set("User-Agent", c.UserAgent)
 
 	return req, nil
@@ -107,7 +119,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 
 // Do sends an API request and returns the API response. The API response is JSON decoded and stored in
 // the value pointed to by v, or returned as an error if an API error has occurred.
-func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
+func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Response, error) {
 	req = req.WithContext(ctx)
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -132,9 +144,10 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 		_ = resp.Body.Close()
 	}()
 
-	err = CheckResponse(resp)
+	response := newResponse(resp)
+	err = CheckResponse(response)
 	if err != nil {
-		return resp, err
+		return response, err
 	}
 
 	if v != nil {
@@ -155,12 +168,26 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 		}
 	}
 
-	return resp, err
+	return response, err
+}
+
+// newResponse creates a new Response for the provided http.Response. r must be not nil.
+func newResponse(r *http.Response) *Response {
+	response := &Response{Response: r}
+	response.populateStackifyID()
+	return response
+}
+
+// populateStackifyID parses the request headers and populates the response stackify id.
+func (r *Response) populateStackifyID() {
+	if stackifyID := r.Header.Get(headerStackifyID); stackifyID != "" {
+		r.StackifyID = stackifyID
+	}
 }
 
 // CheckResponse checks the API response for errors, and returns them if present. A response is considered
 // an error if it has a status code outside the 200 range.
-func CheckResponse(resp *http.Response) error {
+func CheckResponse(resp *Response) error {
 	if code := resp.StatusCode; code >= 200 && code <= 299 {
 		return nil
 	}

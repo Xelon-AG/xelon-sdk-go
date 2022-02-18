@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// DeviceService handles communication with the devices related methods of the Xelon API.
+// DevicesService handles communication with the devices related methods of the Xelon API.
 type DevicesService service
 
 // Device represents a Xelon device.
@@ -45,7 +45,7 @@ type DeviceRoot struct {
 }
 
 // Get provides detailed information for a device identified by tenant and localvmid.
-func (s *DevicesService) Get(ctx context.Context, tenantID, localVMID string) (*DeviceRoot, *http.Response, error) {
+func (s *DevicesService) Get(ctx context.Context, tenantID, localVMID string) (*DeviceRoot, *Response, error) {
 	if tenantID == "" || localVMID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
