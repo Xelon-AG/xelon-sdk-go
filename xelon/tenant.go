@@ -15,7 +15,7 @@ type Tenant struct {
 }
 
 // Get provides information about user especially tenant id.
-func (s *TenantService) Get(ctx context.Context) (*Tenant, *http.Response, error) {
+func (s *TenantService) Get(ctx context.Context) (*Tenant, *Response, error) {
 	path := tenantBasePath
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)

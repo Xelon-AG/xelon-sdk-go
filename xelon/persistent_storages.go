@@ -36,7 +36,7 @@ type PersistentStorageAttachDetachRequest struct {
 	ServerID []string `json:"server_id"`
 }
 
-func (s *PersistentStoragesService) List(ctx context.Context, tenantID string) ([]PersistentStorage, *http.Response, error) {
+func (s *PersistentStoragesService) List(ctx context.Context, tenantID string) ([]PersistentStorage, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -56,7 +56,7 @@ func (s *PersistentStoragesService) List(ctx context.Context, tenantID string) (
 	return persistentStorages, resp, nil
 }
 
-func (s *PersistentStoragesService) Get(ctx context.Context, tenantID, localID string) (*PersistentStorage, *http.Response, error) {
+func (s *PersistentStoragesService) Get(ctx context.Context, tenantID, localID string) (*PersistentStorage, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -76,7 +76,7 @@ func (s *PersistentStoragesService) Get(ctx context.Context, tenantID, localID s
 	return persistentStorage, resp, nil
 }
 
-func (s *PersistentStoragesService) GetByName(ctx context.Context, tenantID, name string) (*PersistentStorage, *http.Response, error) {
+func (s *PersistentStoragesService) GetByName(ctx context.Context, tenantID, name string) (*PersistentStorage, *Response, error) {
 	if tenantID == "" || name == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -96,7 +96,7 @@ func (s *PersistentStoragesService) GetByName(ctx context.Context, tenantID, nam
 	return persistentStorage, resp, nil
 }
 
-func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *http.Response, error) {
+func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -119,7 +119,7 @@ func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string,
 	return apiResponse, resp, nil
 }
 
-func (s *PersistentStoragesService) Delete(ctx context.Context, tenantID, localID string) (*http.Response, error) {
+func (s *PersistentStoragesService) Delete(ctx context.Context, tenantID, localID string) (*Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -133,7 +133,7 @@ func (s *PersistentStoragesService) Delete(ctx context.Context, tenantID, localI
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *PersistentStoragesService) AttachToDevice(ctx context.Context, tenantID, localID string, attachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *http.Response, error) {
+func (s *PersistentStoragesService) AttachToDevice(ctx context.Context, tenantID, localID string, attachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -155,7 +155,7 @@ func (s *PersistentStoragesService) AttachToDevice(ctx context.Context, tenantID
 	return apiResponse, resp, nil
 }
 
-func (s *PersistentStoragesService) DetachFromDevice(ctx context.Context, tenantID, localID string, detachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *http.Response, error) {
+func (s *PersistentStoragesService) DetachFromDevice(ctx context.Context, tenantID, localID string, detachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}

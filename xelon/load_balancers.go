@@ -54,7 +54,7 @@ type LoadBalancerUpdateForwardingRulesRequest struct {
 }
 
 // List provides information about load balancers.
-func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]LoadBalancer, *http.Response, error) {
+func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]LoadBalancer, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -75,7 +75,7 @@ func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]Loa
 }
 
 // Get provides information about a load balancer identified by local id.
-func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string) (*LoadBalancer, *http.Response, error) {
+func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string) (*LoadBalancer, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -96,7 +96,7 @@ func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string
 }
 
 // Create makes a new load balancer with given payload.
-func (s *LoadBalancersService) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequest) (*APIResponse, *http.Response, error) {
+func (s *LoadBalancersService) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -120,7 +120,7 @@ func (s *LoadBalancersService) Create(ctx context.Context, tenantID string, crea
 }
 
 // Delete removes a load balancer.
-func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID string) (*http.Response, error) {
+func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID string) (*Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -134,7 +134,7 @@ func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID str
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *LoadBalancersService) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequest) (*APIResponse, *http.Response, error) {
+func (s *LoadBalancersService) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}

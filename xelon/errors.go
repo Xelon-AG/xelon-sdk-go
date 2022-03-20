@@ -3,16 +3,15 @@ package xelon
 import (
 	"errors"
 	"fmt"
-	"net/http"
 )
 
 var (
-	ErrEmptyArgument          = errors.New("(api) argument cannot be empty")
-	ErrEmptyPayloadNotAllowed = errors.New("(api) empty payload not allowed")
+	ErrEmptyArgument          = errors.New("argument cannot be empty")
+	ErrEmptyPayloadNotAllowed = errors.New("empty payload is not allowed")
 )
 
 type ErrorResponse struct {
-	Response     *http.Response
+	Response     *Response
 	ErrorElement ErrorElement
 }
 
