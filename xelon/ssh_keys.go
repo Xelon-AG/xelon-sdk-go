@@ -25,6 +25,10 @@ type SSHKeyCreateRequest struct {
 	*SSHKey
 }
 
+func (v SSHKey) String() string {
+	return Stringify(v)
+}
+
 // List provides a list of all added SSH keys.
 func (s *SSHKeysService) List(ctx context.Context) ([]SSHKey, *Response, error) {
 	path := "sshKeys/"
