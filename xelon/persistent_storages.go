@@ -29,7 +29,8 @@ type AssignedServer struct {
 
 type PersistentStorageCreateRequest struct {
 	*PersistentStorage
-	Size int `json:"size,omitempty"`
+	CloudID string `json:"cloudId,omitempty"`
+	Size    int    `json:"size,omitempty"`
 }
 
 type PersistentStorageAttachDetachRequest struct {

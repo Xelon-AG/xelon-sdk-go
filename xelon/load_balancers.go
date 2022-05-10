@@ -43,6 +43,7 @@ type LoadBalancerHealthCheck struct {
 }
 
 type LoadBalancerCreateRequest struct {
+	CloudID         string                       `json:"cloudId,omitempty"`
 	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
 	Name            string                       `json:"name,omitempty"`
 	ServerID        []string                     `json:"server_id,omitempty"`
