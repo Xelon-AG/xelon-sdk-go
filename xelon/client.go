@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -195,9 +194,9 @@ func CheckResponse(resp *Response) error {
 	}
 
 	errorResponse := &ErrorResponse{Response: resp}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err == nil && len(data) > 0 {
-		err := json.Unmarshal(data, &errorResponse.ErrorElement)
+		err = json.Unmarshal(data, &errorResponse.ErrorElement)
 		if err != nil {
 			return err
 		}
