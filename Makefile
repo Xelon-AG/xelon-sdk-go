@@ -10,7 +10,7 @@ BUILD_DIR := build
 .PHONY: tools
 tools:
 ifeq (,$(wildcard ./.bin/golangci-lint*))
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b .bin/ v1.46.0
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b .bin/ v1.46.2
 else
 	@echo "==> Required tooling is already installed"
 endif
