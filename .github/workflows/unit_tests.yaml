@@ -1,7 +1,7 @@
 name: Build
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
 
 jobs:
@@ -10,20 +10,20 @@ jobs:
 
     strategy:
       matrix:
-        go-version: [ 1.16, 1.17, 1.18 ]
+        go-version: [1.16, 1.17, 1.18]
 
     name: unit tests (go ${{ matrix.go-version }})
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Go ${{ matrix.go-version }}
+      - name: Setup Go ${{ matrix.go-version }}
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
 
-      - name: Set up cache
+      - name: Setup Cache
         uses: actions/cache@v3
         with:
           path: .bin
