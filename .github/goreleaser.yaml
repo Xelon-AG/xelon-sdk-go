@@ -9,14 +9,20 @@ builds:
 
 changelog:
   sort: asc
+  groups:
+    - title: "Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Bug fixes'
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: "Others"
+      order: 999
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-
-checksum:
-  name_template: '{{ .ProjectName }}_v{{ .Version }}_SHA256SUMS'
-  algorithm: sha256
+      - "^docs:"
+      - "^test:"
+      - "^Merge pull request"
 
 release:
   github:
