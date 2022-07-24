@@ -1,0 +1,24 @@
+project_name: xelon-sdk-go
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - skip: true
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+checksum:
+  name_template: '{{ .ProjectName }}_v{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+
+release:
+  github:
+    owner: Xelon-AG
+    name: xelon-sdk-go
