@@ -30,7 +30,7 @@ jobs:
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v3
         with:
-          args: release --rm-dist
+          args: release -f .github/goreleaser.yaml --rm-dist
           distribution: goreleaser
           version: latest
         env:
