@@ -23,6 +23,7 @@ changelog:
       - "^docs:"
       - "^test:"
       - "^Merge pull request"
+      - "^Release"
 
 release:
   github:
