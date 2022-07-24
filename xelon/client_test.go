@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -40,10 +41,44 @@ func TestClient_NewClient(t *testing.T) {
 }
 
 func TestClient_SetUserAgent(t *testing.T) {
-	setup()
-	defer teardown()
+	client := &Client{}
 
 	client.SetUserAgent("custom-user-agent")
+
+	assert.Equal(t, "custom-user-agent", client.UserAgent)
+}
+
+func TestClient_Defaults(t *testing.T) {
+	client := NewClient("auth-token")
+
+	assert.Equal(t, "https://hq.xelon.ch/api/service/", client.BaseURL.String())
+	assert.Contains(t, client.UserAgent, "xelon-sdk-go/")
+	assert.Equal(t, 60*time.Second, client.httpClient.Timeout)
+}
+
+func TestClient_WithBaseURL(t *testing.T) {
+	expectedBaseURL, _ := url.Parse("https://testing.xelon.ch/")
+	client := NewClient("auth-token",
+		WithBaseURL("https://testing.xelon.ch/"),
+	)
+
+	assert.Equal(t, expectedBaseURL, client.BaseURL)
+}
+
+func TestClient_WithHTTPClient(t *testing.T) {
+	httpClient := &http.Client{Timeout: 2 * time.Second}
+	client := NewClient("auth-token",
+		WithHTTPClient(httpClient),
+	)
+
+	assert.Equal(t, httpClient, client.httpClient)
+	assert.Equal(t, 2*time.Second, client.httpClient.Timeout)
+}
+
+func TestClient_WithUserAgent(t *testing.T) {
+	client := NewClient("auth-token",
+		WithUserAgent("custom-user-agent"),
+	)
 
 	assert.Equal(t, "custom-user-agent", client.UserAgent)
 }
