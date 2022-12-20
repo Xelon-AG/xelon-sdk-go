@@ -6,14 +6,11 @@ PROJECT_NAME := xelon-sdk-go
 BUILD_DIR := build
 
 
-## tools: Install required tooling...
+## tools: Install required tooling.
 .PHONY: tools
 tools:
-ifeq (,$(wildcard ./.bin/golangci-lint*))
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b .bin/ v1.46.2
-else
-	@echo "==> Required tooling is already installed"
-endif
+	@echo "==> Installing required tooling..."
+	@cd tools && go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 
 ## clean: Delete the build directory.
@@ -27,7 +24,7 @@ clean:
 .PHONY: lint
 lint:
 	@echo "==> Linting code with 'golangci-lint'..."
-	@.bin/golangci-lint run ./...
+	@golangci-lint run ./...
 
 
 ## test: Run all tests.
