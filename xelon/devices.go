@@ -6,42 +6,78 @@ import (
 	"net/http"
 )
 
+const devicesBasePath = "vmlist"
+
 // DevicesService handles communication with the devices related methods of the Xelon API.
 type DevicesService service
 
 // Device represents a Xelon device.
 type Device struct {
-	CPU            int            `json:"cpu"`
-	LocalVMDetails LocalVMDetails `json:"localvmdetails,omitempty"`
-	Networks       []Network      `json:"networks,omitempty"`
-	PowerState     bool           `json:"powerstate"`
-	RAM            int            `json:"ram"`
+	CPU            int                   `json:"cpu"`
+	LocalVMDetails *DeviceLocalVMDetails `json:"localvmdetails,omitempty"`
+	Networks       []DeviceNetwork       `json:"networks,omitempty"`
+	PowerState     bool                  `json:"powerstate"`
+	RAM            int                   `json:"ram"`
 }
 
-// LocalVMDetails represents a Xelon device's details.
-type LocalVMDetails struct {
-	CreatedAt     string `json:"created_at"`
-	HVSystemID    int    `json:"hv_system_id"`
+// DeviceLocalVMDetails represents a Xelon device's details.
+type DeviceLocalVMDetails struct {
+	CreatedAt     string `json:"created_at,omitempty"`
+	CPU           int    `json:"cpu,omitempty"`
+	HVSystemID    int    `json:"hv_system_id,omitempty"`
 	ISOMounted    string `json:"iso_mounted,omitempty"`
-	LocalVMID     string `json:"localvmid"`
-	State         int    `json:"state"`
-	TemplateID    int    `json:"template_id"`
-	UpdatedAt     string `json:"updated_at"`
-	UserID        int    `json:"user_id"`
-	VMDisplayName string `json:"vmdisplayname"`
-	VMHostname    string `json:"vmhostname"`
+	LocalVMID     string `json:"localvmid,omitempty"`
+	Memory        int    `json:"memory,omitempty"`
+	State         int    `json:"state,omitempty"`
+	TemplateID    int    `json:"template_id,omitempty"`
+	UpdatedAt     string `json:"updated_at,omitempty"`
+	UserID        int    `json:"user_id,omitempty"`
+	VMDisplayName string `json:"vmdisplayname,omitempty"`
+	VMHostname    string `json:"vmhostname,omitempty"`
 }
 
-// Network represents a Xelon device's network information.
-type Network struct {
+// DeviceNetwork represents a Xelon device's network information.
+type DeviceNetwork struct {
 	IPAddress  string `json:"ip,omitempty"`
 	Label      string `json:"label,omitempty"`
 	MacAddress string `json:"macAddress,omitempty"`
 }
 
+type ToolsStatus struct {
+	RunningStatus string `json:"runningStatus,omitempty"`
+	Version       string `json:"version,omitempty"`
+	ToolsStatus   bool   `json:"toolsStatus,omitempty"`
+}
+
+type DeviceCreateRequest struct {
+	CloudID              int    `json:"cloudId"`
+	CPUCores             int    `json:"cpucores"`
+	DiskSize             int    `json:"disksize"`
+	DisplayName          string `json:"displayname"`
+	Hostname             string `json:"hostname"`
+	IPAddressID          int    `json:"ipaddr1"`
+	Memory               int    `json:"memory"`
+	NetworkID            int    `json:"networkid1"`
+	NICControllerKey     int    `json:"niccontrollerkey1"`
+	NICKey               int    `json:"nickey1"`
+	NICNumber            int    `json:"nicnumber"`
+	NICUnit              int    `json:"nicunit1"`
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"password_confirmation"`
+	SwapDiskSize         int    `json:"swapdisksize"`
+	TemplateID           int    `json:"template"`
+	TenantID             string `json:"tenant_identifier"`
+}
+
+type DeviceCreateResponse struct {
+	LocalVMDetails *DeviceLocalVMDetails `json:"device,omitempty"`
+	IPs            []string              `json:"ips,omitempty"`
+}
+
 // DeviceRoot represents a Xelon device root object.
 type DeviceRoot struct {
-	Device Device `json:"device,omitempty"`
+	Device      *Device      `json:"device,omitempty"`
+	ToolsStatus *ToolsStatus `json:"toolsStatus,omitempty"`
 }
 
 // Get provides detailed information for a device identified by tenant and localvmid.
@@ -64,4 +100,72 @@ func (s *DevicesService) Get(ctx context.Context, tenantID, localVMID string) (*
 	}
 
 	return deviceRoot, resp, nil
+}
+
+// Create makes a new device with given payload.
+func (s *DevicesService) Create(ctx context.Context, createRequest *DeviceCreateRequest) (*DeviceCreateResponse, *Response, error) {
+	if createRequest == nil {
+		return nil, nil, ErrEmptyPayloadNotAllowed
+	}
+
+	path := fmt.Sprintf("%v/create", devicesBasePath)
+
+	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	deviceCreateResponse := new(DeviceCreateResponse)
+	resp, err := s.client.Do(ctx, req, deviceCreateResponse)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return deviceCreateResponse, resp, nil
+}
+
+// Delete removes a device identified by localvmid.
+func (s *DevicesService) Delete(ctx context.Context, localVMID string) (*Response, error) {
+	if localVMID == "" {
+		return nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v", devicesBasePath, localVMID)
+
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+func (s *DevicesService) Start(ctx context.Context, localVMID string) (*Response, error) {
+	if localVMID == "" {
+		return nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v/startserver", devicesBasePath, localVMID)
+
+	req, err := s.client.NewRequest(http.MethodPost, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+func (s *DevicesService) Stop(ctx context.Context, localVMID string) (*Response, error) {
+	if localVMID == "" {
+		return nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v/stopserver", devicesBasePath, localVMID)
+
+	req, err := s.client.NewRequest(http.MethodPost, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }
