@@ -65,6 +65,14 @@ func TestClient_WithBaseURL(t *testing.T) {
 	assert.Equal(t, expectedBaseURL, client.BaseURL)
 }
 
+func TestClient_WithClientID(t *testing.T) {
+	client := NewClient("auth-token",
+		WithClientID("custom-client-id"),
+	)
+
+	assert.Equal(t, "custom-client-id", client.ClientID)
+}
+
 func TestClient_WithHTTPClient(t *testing.T) {
 	httpClient := &http.Client{Timeout: 2 * time.Second}
 	client := NewClient("auth-token",
