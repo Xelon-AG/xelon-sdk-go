@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	libraryVersion = "0.7.0"
+	libraryVersion = "0.8.0"
 
 	defaultBaseURL   = "https://hq.xelon.ch/api/service/"
 	defaultMediaType = "application/json"
@@ -27,8 +27,9 @@ type Client struct {
 	httpClient *http.Client // HTTP client used to communicate with the API.
 
 	BaseURL   *url.URL // Base URL for API requests. BaseURL should always be specified with a trailing slash.
-	UserAgent string   // User agent used when communicating with Xelon API.
+	ClientID  string   // ClientID for IP ranges.
 	Token     string   // Token for Xelon API.
+	UserAgent string   // User agent used when communicating with Xelon API.
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
@@ -50,6 +51,13 @@ func WithBaseURL(baseURL string) ClientOption {
 	return func(client *Client) {
 		parsedURL, _ := url.Parse(baseURL)
 		client.BaseURL = parsedURL
+	}
+}
+
+// WithClientID configures Client to use "X-User-Id" http header by all API requests.
+func WithClientID(clientID string) ClientOption {
+	return func(client *Client) {
+		client.ClientID = clientID
 	}
 }
 
@@ -137,6 +145,10 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	req.Header.Set("Accept", defaultMediaType)
 	req.Header.Set("Content-Type", defaultMediaType)
 	req.Header.Set("User-Agent", c.UserAgent)
+
+	if c.ClientID != "" {
+		req.Header.Set("X-User-Id", c.ClientID)
+	}
 
 	return req, nil
 }
