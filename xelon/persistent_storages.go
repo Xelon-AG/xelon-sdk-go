@@ -11,20 +11,14 @@ const persistentStorageBasePath = "persistentStorage"
 type PersistentStoragesService service
 
 type PersistentStorage struct {
-	AssignedServers []AssignedServer `json:"assigned_servers,omitempty"`
-	Capacity        int              `json:"capacity,omitempty"`
-	Formatted       int              `json:"formatted,omitempty"`
-	ID              int              `json:"id,omitempty"`
-	LocalID         string           `json:"local_id,omitempty"`
-	Name            string           `json:"name,omitempty"`
-	Type            int              `json:"type,omitempty"`
-	UUID            string           `json:"uuid,omitempty"`
-}
-
-type AssignedServer struct {
-	LocalVMID  string `json:"localvmid,omitempty"`
-	State      int    `json:"state,omitempty"`
-	VMHostName string `json:"vmhostname,omitempty"`
+	AssignedServers []DeviceLocalVMDetails `json:"assigned_servers,omitempty"`
+	Capacity        int                    `json:"capacity,omitempty"`
+	Formatted       int                    `json:"formatted,omitempty"`
+	ID              int                    `json:"id,omitempty"`
+	LocalID         string                 `json:"local_id,omitempty"`
+	Name            string                 `json:"name,omitempty"`
+	Type            int                    `json:"type,omitempty"`
+	UUID            string                 `json:"uuid,omitempty"`
 }
 
 type PersistentStorageCreateRequest struct {
