@@ -20,7 +20,7 @@ func TestTenant_Get(t *testing.T) {
 		TenantID: "long-id",
 	}
 
-	tenant, _, err := client.Tenant.Get(ctx)
+	tenant, _, err := client.Tenants.GetCurrent(ctx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tenant)

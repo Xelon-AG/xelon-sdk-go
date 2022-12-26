@@ -38,7 +38,7 @@ type Client struct {
 	PersistentStorages *PersistentStoragesService
 	SSHKeys            *SSHKeysService
 	Templates          *TemplatesService
-	Tenant             *TenantService
+	Tenants            *TenantsService
 }
 
 type service struct {
@@ -100,7 +100,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.PersistentStorages = (*PersistentStoragesService)(&c.common)
 	c.SSHKeys = (*SSHKeysService)(&c.common)
 	c.Templates = (*TemplatesService)(&c.common)
-	c.Tenant = (*TenantService)(&c.common)
+	c.Tenants = (*TenantsService)(&c.common)
 
 	return c
 }
