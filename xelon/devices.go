@@ -69,6 +69,11 @@ type DeviceCreateRequest struct {
 	TenantID             string `json:"tenant_identifier"`
 }
 
+type DeviceCreationInfo struct {
+	Template *Template `json:"template,omitempty"`
+	NICs     []NIC     `json:"nics,omitempty"`
+}
+
 type DeviceCreateResponse struct {
 	LocalVMDetails *DeviceLocalVMDetails `json:"device,omitempty"`
 	IPs            []string              `json:"ips,omitempty"`
@@ -140,6 +145,7 @@ func (s *DevicesService) Delete(ctx context.Context, localVMID string) (*Respons
 	return s.client.Do(ctx, req, nil)
 }
 
+// Start starts a specific device identified by localvmid.
 func (s *DevicesService) Start(ctx context.Context, localVMID string) (*Response, error) {
 	if localVMID == "" {
 		return nil, ErrEmptyArgument
@@ -155,6 +161,7 @@ func (s *DevicesService) Start(ctx context.Context, localVMID string) (*Response
 	return s.client.Do(ctx, req, nil)
 }
 
+// Stop stops a specific device identified by localvmid.
 func (s *DevicesService) Stop(ctx context.Context, localVMID string) (*Response, error) {
 	if localVMID == "" {
 		return nil, ErrEmptyArgument
@@ -168,4 +175,30 @@ func (s *DevicesService) Stop(ctx context.Context, localVMID string) (*Response,
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+// GetDeviceCreationInfo retrieves a list of available templates, NICs,
+// and scripts when creating a new device.
+func (s *DevicesService) GetDeviceCreationInfo(ctx context.Context, tenantID, deviceType string, templateID int) (*DeviceCreationInfo, *Response, error) {
+	if tenantID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+	if deviceType == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v/create/Server/%v/%v", tenantID, devicesBasePath, deviceType, templateID)
+
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	creationInfo := new(DeviceCreationInfo)
+	resp, err := s.client.Do(ctx, req, creationInfo)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return creationInfo, resp, nil
 }
