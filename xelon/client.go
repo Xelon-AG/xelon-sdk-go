@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	libraryVersion = "0.10.0"
+	libraryVersion = "0.10.1"
 
 	defaultBaseURL   = "https://hq.xelon.ch/api/service/"
 	defaultMediaType = "application/json"
