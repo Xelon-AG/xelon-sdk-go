@@ -27,6 +27,10 @@ type PersistentStorageCreateRequest struct {
 	Size    int    `json:"size,omitempty"`
 }
 
+type PersistentStorageExtendRequest struct {
+	Size int `json:"size"`
+}
+
 type PersistentStorageAttachDetachRequest struct {
 	ServerID []string `json:"server_id"`
 }
@@ -101,6 +105,29 @@ func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string,
 
 	path := fmt.Sprintf("%v/%v", tenantID, persistentStorageBasePath)
 	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	apiResponse := new(APIResponse)
+	resp, err := s.client.Do(ctx, req, apiResponse)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return apiResponse, resp, nil
+}
+
+func (s *PersistentStoragesService) Extend(ctx context.Context, localID string, extendRequest *PersistentStorageExtendRequest) (*APIResponse, *Response, error) {
+	if localID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+	if extendRequest == nil {
+		return nil, nil, ErrEmptyPayloadNotAllowed
+	}
+
+	path := fmt.Sprintf("%v/%v", persistentStorageBasePath, localID)
+	req, err := s.client.NewRequest(http.MethodPost, path, extendRequest)
 	if err != nil {
 		return nil, nil, err
 	}
