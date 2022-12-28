@@ -35,6 +35,7 @@ type Client struct {
 
 	Devices            *DevicesService
 	LoadBalancers      *LoadBalancersService
+	Networks           *NetworksService
 	PersistentStorages *PersistentStoragesService
 	SSHKeys            *SSHKeysService
 	Templates          *TemplatesService
@@ -97,6 +98,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 
 	c.Devices = (*DevicesService)(&c.common)
 	c.LoadBalancers = (*LoadBalancersService)(&c.common)
+	c.Networks = (*NetworksService)(&c.common)
 	c.PersistentStorages = (*PersistentStoragesService)(&c.common)
 	c.SSHKeys = (*SSHKeysService)(&c.common)
 	c.Templates = (*TemplatesService)(&c.common)
