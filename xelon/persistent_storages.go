@@ -8,6 +8,7 @@ import (
 
 const persistentStorageBasePath = "persistentStorage"
 
+// PersistentStoragesService handles communication with the persistent storage related methods of the Xelon API.
 type PersistentStoragesService service
 
 type PersistentStorage struct {
