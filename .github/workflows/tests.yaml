@@ -5,7 +5,7 @@ on:
     paths-ignore:
       - "README.md"
   push:
-    branches: [master]
+    branches: [ master ]
     paths-ignore:
       - "README.md"
 
@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: [1.18, 1.19]
+        go-version: [ 1.18, 1.19 ]
 
     name: unit tests (go ${{ matrix.go-version }})
     steps:
@@ -31,13 +31,13 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache: true
 
-      - name: Setup Cache
+      - name: Set up cache
         uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('go.sum', 'tools/go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('go.sum', 'tools/go.sum') }}-${{ matrix.go-version }}
           restore-keys: |
             ${{ runner.os }}-go-
 
