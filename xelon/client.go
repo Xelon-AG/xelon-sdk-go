@@ -28,7 +28,7 @@ type Client struct {
 
 	BaseURL   *url.URL // Base URL for API requests. BaseURL should always be specified with a trailing slash.
 	ClientID  string   // ClientID for IP ranges.
-	Token     string   // Token for Xelon API.
+	token     string   // token for Xelon API.
 	UserAgent string   // User agent used when communicating with Xelon API.
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
@@ -88,7 +88,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c := &Client{
 		BaseURL:    baseUrl,
 		httpClient: httpClient,
-		Token:      token,
+		token:      token,
 		UserAgent:  defaultUserAgent,
 	}
 	for _, opt := range opts {
@@ -146,7 +146,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	}
 
 	if req.Header.Get("Authorization") == "" {
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
 	}
 	req.Header.Set("Accept", defaultMediaType)
 	req.Header.Set("Content-Type", defaultMediaType)
