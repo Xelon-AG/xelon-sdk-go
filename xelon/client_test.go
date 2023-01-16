@@ -37,7 +37,7 @@ func TestClient_NewClient(t *testing.T) {
 
 	assert.NotNil(t, client.BaseURL)
 	assert.Equal(t, fmt.Sprintf("%v/", server.URL), client.BaseURL.String())
-	assert.Equal(t, "auth-token", client.Token)
+	assert.Equal(t, "auth-token", client.token)
 }
 
 func TestClient_SetUserAgent(t *testing.T) {
