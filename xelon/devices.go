@@ -79,10 +79,50 @@ type DeviceCreateResponse struct {
 	IPs            []string              `json:"ips,omitempty"`
 }
 
+type DeviceListOptions struct {
+	ListOptions
+}
+
+type deviceListRoot struct {
+	Devices []DeviceLocalVMDetails `json:"data,omitempty"`
+	Meta
+}
+
 // DeviceRoot represents a Xelon device root object.
 type DeviceRoot struct {
 	Device      *Device      `json:"device,omitempty"`
 	ToolsStatus *ToolsStatus `json:"toolsStatus,omitempty"`
+}
+
+// List provides a list of all devices.
+func (s *DevicesService) List(ctx context.Context, tenantID string, opts *DeviceListOptions) ([]DeviceLocalVMDetails, *Response, error) {
+	if tenantID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/devices", tenantID)
+	path, err := addOptions(path, opts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(deviceListRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	resp.Meta = &Meta{
+		Page:    root.Page,
+		PerPage: root.PerPage,
+		Total:   root.Total,
+	}
+
+	return root.Devices, resp, nil
 }
 
 // Get provides detailed information for a device identified by tenant and localvmid.
