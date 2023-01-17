@@ -8,8 +8,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
+
+	"github.com/google/go-querystring/query"
 )
 
 const (
@@ -45,6 +48,38 @@ type Client struct {
 
 type service struct {
 	client *Client
+}
+
+// ListOptions specifies the optional parameters to various List methods that
+// support pagination.
+type ListOptions struct {
+	// Page of results to retrieve.
+	Page int `url:"page,omitempty"`
+
+	// PerPage specifies the number of results to include per page.
+	PerPage int `url:"per_page,omitempty"`
+}
+
+// addOptions adds the parameters in opts as URL query parameters to s. opts
+// must be a struct whose fields may contain "url" tags.
+func addOptions(s string, opts interface{}) (string, error) {
+	v := reflect.ValueOf(opts)
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return s, nil
+	}
+
+	u, err := url.Parse(s)
+	if err != nil {
+		return s, err
+	}
+
+	qs, err := query.Values(opts)
+	if err != nil {
+		return s, err
+	}
+
+	u.RawQuery = qs.Encode()
+	return u.String(), nil
 }
 
 type ClientOption func(*Client)
@@ -162,6 +197,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 // Response is a Xelon response. This wraps the standard http.Response.
 type Response struct {
 	*http.Response
+
+	Meta *Meta // Meta describes generic information about the response.
 
 	StackifyID string // StackifyID returned from the API, useful to contact support.
 }
