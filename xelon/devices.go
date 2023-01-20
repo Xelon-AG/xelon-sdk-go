@@ -219,15 +219,15 @@ func (s *DevicesService) Stop(ctx context.Context, localVMID string) (*Response,
 
 // GetDeviceCreationInfo retrieves a list of available templates, NICs,
 // and scripts when creating a new device.
-func (s *DevicesService) GetDeviceCreationInfo(ctx context.Context, tenantID, deviceType string, templateID int) (*DeviceCreationInfo, *Response, error) {
+func (s *DevicesService) GetDeviceCreationInfo(ctx context.Context, tenantID, deviceCategory, deviceType string, templateID int) (*DeviceCreationInfo, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
-	if deviceType == "" {
+	if deviceCategory == "" || deviceType == "" {
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/create/Server/%v/%v", tenantID, devicesBasePath, deviceType, templateID)
+	path := fmt.Sprintf("%v/%v/create/%v/%v/%v", tenantID, devicesBasePath, deviceCategory, deviceType, templateID)
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {

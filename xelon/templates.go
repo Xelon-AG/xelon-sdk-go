@@ -12,8 +12,10 @@ const templatesBasePath = "templates"
 type TemplatesService service
 
 type Template struct {
+	Description  string `json:"description,omitempty"`
+	Category     string `json:"category,omitempty"`
+	Cloud        *Cloud `json:"hv_system,omitempty"`
 	ID           int    `json:"id,omitempty"`
-	HVSystemID   int    `json:"hv_system_id"`
 	Name         string `json:"name,omitempty"`
 	NICUnit      int    `json:"nicunit,omitempty"`
 	TemplateType int    `json:"templatetype,omitempty"`
@@ -21,12 +23,20 @@ type Template struct {
 }
 
 type Templates struct {
-	LinuxTemplates []Template `json:"templates_linux,omitempty"`
-	Templates      []Template `json:"templates,omitempty"`
+	Firewalls []Template `json:"templates_firewalls,omitempty"`
+	Linux     []Template `json:"templates_linux,omitempty"`
+	Templates []Template `json:"templates,omitempty"`
+	Windows   []Template `json:"templates_windows,omitempty"`
 }
 
-func (s *TemplatesService) List(ctx context.Context) (*Templates, *Response, error) {
+// List provides a list of available templates.
+//
+// Note, passing 0 (zero) for cloudID will retrieve templates across all available clouds.
+func (s *TemplatesService) List(ctx context.Context, cloudID int) (*Templates, *Response, error) {
 	path := fmt.Sprintf("device/%s", templatesBasePath)
+	if cloudID != 0 {
+		path = fmt.Sprintf("%v?cloudId=%v", path, cloudID)
+	}
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
