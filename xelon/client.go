@@ -141,6 +141,11 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.Templates = (*TemplatesService)(&c.common)
 	c.Tenants = (*TenantsService)(&c.common)
 
+	// Notify user if no ClientID is set
+	if c.ClientID == "" {
+		fmt.Printf("ClientID is not set, please update your credentials\nUsing the HQ-API without the ClientID-Header will be deprecated in 2024\n")
+	}
+
 	return c
 }
 
