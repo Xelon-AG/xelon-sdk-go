@@ -17,7 +17,9 @@ linters-settings:
     local-prefixes: github.com/Xelon-AG/xelon-sdk-go
 
 output:
-  format: tab
+  formats:
+    - format: tab
+  show-stats: true
 
 run:
-  deadline: 10m
+  timeout: 10m
