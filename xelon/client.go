@@ -36,14 +36,15 @@ type Client struct {
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
-	Clouds             *CloudsService
-	Devices            *DevicesService
-	LoadBalancers      *LoadBalancersService
-	Networks           *NetworksService
-	PersistentStorages *PersistentStoragesService
-	SSHKeys            *SSHKeysService
-	Templates          *TemplatesService
-	Tenants            *TenantsService
+	Clouds               *CloudsService
+	Devices              *DevicesService
+	LoadBalancerClusters *LoadBalancerClustersService
+	LoadBalancers        *LoadBalancersService
+	Networks             *NetworksService
+	PersistentStorages   *PersistentStoragesService
+	SSHKeys              *SSHKeysService
+	Templates            *TemplatesService
+	Tenants              *TenantsService
 }
 
 type service struct {
@@ -134,6 +135,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 
 	c.Clouds = (*CloudsService)(&c.common)
 	c.Devices = (*DevicesService)(&c.common)
+	c.LoadBalancerClusters = (*LoadBalancerClustersService)(&c.common)
 	c.LoadBalancers = (*LoadBalancersService)(&c.common)
 	c.Networks = (*NetworksService)(&c.common)
 	c.PersistentStorages = (*PersistentStoragesService)(&c.common)
