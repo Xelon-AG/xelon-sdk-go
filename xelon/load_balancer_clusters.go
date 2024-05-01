@@ -14,12 +14,13 @@ type LoadBalancerClustersService service
 
 // LoadBalancerCluster represents a Xelon load balancer cluster.
 type LoadBalancerCluster struct {
-	Cloud    *Cloud   `json:"hv_system,omitempty"`
-	ID       string   `json:"identifier,omitempty"`
-	Name     string   `json:"name,omitempty"`
-	Nodes    []string `json:"nodes,omitempty"`
-	Status   string   `json:"status,omitempty"`
-	TenantID string   `json:"tenantIdentifier,omitempty"`
+	Cloud               *Cloud   `json:"hv_system,omitempty"`
+	ID                  string   `json:"identifier,omitempty"`
+	KubernetesClusterID string   `json:"kubernetesClusterIdentifier,omitempty"`
+	Name                string   `json:"name,omitempty"`
+	Nodes               []string `json:"nodes,omitempty"`
+	Status              string   `json:"status,omitempty"`
+	TenantID            string   `json:"tenantIdentifier,omitempty"`
 }
 
 type LoadBalancerClusterCreateRequest struct {
