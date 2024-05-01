@@ -131,12 +131,13 @@ func (s *LoadBalancerClustersService) Delete(ctx context.Context, id string) (*R
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *LoadBalancerClustersService) ListVirtualIPs(ctx context.Context, id string) ([]LoadBalancerClusterVirtualIP, *Response, error) {
-	if id == "" {
+// ListVirtualIPs provides information about virtual IP addresses.
+func (s *LoadBalancerClustersService) ListVirtualIPs(ctx context.Context, loadBalancerClusterID string) ([]LoadBalancerClusterVirtualIP, *Response, error) {
+	if loadBalancerClusterID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/virtual-ips", loadBalancerClusterBasePath, id)
+	path := fmt.Sprintf("%v/%v/virtual-ips", loadBalancerClusterBasePath, loadBalancerClusterID)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -151,6 +152,7 @@ func (s *LoadBalancerClustersService) ListVirtualIPs(ctx context.Context, id str
 	return virtualIPs, resp, nil
 }
 
+// ListForwardingRules provides information about forwarding rules.
 func (s *LoadBalancerClustersService) ListForwardingRules(ctx context.Context, loadBalancerClusterID, virtualIPID string) ([]LoadBalancerClusterForwardingRule, *Response, error) {
 	if loadBalancerClusterID == "" || virtualIPID == "" {
 		return nil, nil, ErrEmptyArgument
@@ -171,6 +173,7 @@ func (s *LoadBalancerClustersService) ListForwardingRules(ctx context.Context, l
 	return forwardingRules, resp, nil
 }
 
+// CreateForwardingRules makes a new forwarding rule.
 func (s *LoadBalancerClustersService) CreateForwardingRules(ctx context.Context, loadBalancerClusterID, virtualIPID string, createRequest []LoadBalancerClusterForwardingRule) ([]LoadBalancerClusterForwardingRule, *Response, error) {
 	if loadBalancerClusterID == "" || virtualIPID == "" {
 		return nil, nil, ErrEmptyArgument
@@ -192,4 +195,43 @@ func (s *LoadBalancerClustersService) CreateForwardingRules(ctx context.Context,
 	}
 
 	return forwardingRules, resp, nil
+}
+
+// UpdateForwardingRule changes the configuration of a forwarding rule.
+func (s *LoadBalancerClustersService) UpdateForwardingRule(ctx context.Context, loadBalancerClusterID, virtualIPID, forwardingRuleID string, updateRequest *LoadBalancerClusterForwardingRuleConfiguration) (*APIResponse, *Response, error) {
+	if loadBalancerClusterID == "" || virtualIPID == "" || forwardingRuleID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+	if updateRequest == nil {
+		return nil, nil, ErrEmptyPayloadNotAllowed
+	}
+
+	path := fmt.Sprintf("%v/%v/virtual-ips/%v/forwarding-rules/%v", loadBalancerClusterBasePath, loadBalancerClusterID, virtualIPID, forwardingRuleID)
+	req, err := s.client.NewRequest(http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	apiResponse := new(APIResponse)
+	resp, err := s.client.Do(ctx, req, apiResponse)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return apiResponse, resp, nil
+}
+
+// DeleteForwardingRule removes a forwarding rule.
+func (s *LoadBalancerClustersService) DeleteForwardingRule(ctx context.Context, loadBalancerClusterID, virtualIPID, forwardingRuleID string) (*Response, error) {
+	if loadBalancerClusterID == "" || virtualIPID == "" || forwardingRuleID == "" {
+		return nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v/virtual-ips/%v/forwarding-rules/%v", loadBalancerClusterBasePath, loadBalancerClusterID, virtualIPID, forwardingRuleID)
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }
