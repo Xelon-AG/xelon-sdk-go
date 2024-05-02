@@ -76,12 +76,12 @@ func (s *LoadBalancerClustersService) List(ctx context.Context) ([]LoadBalancerC
 }
 
 // Get provides information about a load balancer cluster identified by id.
-func (s *LoadBalancerClustersService) Get(ctx context.Context, id string) (*LoadBalancerCluster, *Response, error) {
-	if id == "" {
+func (s *LoadBalancerClustersService) Get(ctx context.Context, loadBalancerClusterID string) (*LoadBalancerCluster, *Response, error) {
+	if loadBalancerClusterID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v", loadBalancerClusterBasePath, id)
+	path := fmt.Sprintf("%v/%v", loadBalancerClusterBasePath, loadBalancerClusterID)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -118,12 +118,12 @@ func (s *LoadBalancerClustersService) Create(ctx context.Context, createRequest 
 }
 
 // Delete removes a load balancer.
-func (s *LoadBalancerClustersService) Delete(ctx context.Context, id string) (*Response, error) {
-	if id == "" {
+func (s *LoadBalancerClustersService) Delete(ctx context.Context, loadBalancerClusterID string) (*Response, error) {
+	if loadBalancerClusterID == "" {
 		return nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v", loadBalancerClusterBasePath, id)
+	path := fmt.Sprintf("%v/%v", loadBalancerClusterBasePath, loadBalancerClusterID)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
@@ -151,6 +151,27 @@ func (s *LoadBalancerClustersService) ListVirtualIPs(ctx context.Context, loadBa
 	}
 
 	return virtualIPs, resp, nil
+}
+
+// GetVirtualIP provides information about a virtual IP address identified by id.
+func (s *LoadBalancerClustersService) GetVirtualIP(ctx context.Context, loadBalancerClusterID, virtualIPID string) (*LoadBalancerClusterVirtualIP, *Response, error) {
+	if loadBalancerClusterID == "" || virtualIPID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v/virtual-ips/%v", loadBalancerClusterBasePath, loadBalancerClusterID, virtualIPID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	virtualIP := new(LoadBalancerClusterVirtualIP)
+	resp, err := s.client.Do(ctx, req, virtualIP)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return virtualIP, resp, nil
 }
 
 // ListForwardingRules provides information about forwarding rules.
