@@ -12,7 +12,7 @@ TOOLS_BIN_DIR := ${TOOLS_DIR}/bin
 .PHONY: tools
 tools:
 	@echo "==> Installing required tooling..."
-	@cd tools && GOBIN=${TOOLS_BIN_DIR} go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	@cd ${TOOLS_DIR} && GOBIN=${TOOLS_BIN_DIR} go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 
 ## clean: Delete the build directory.
@@ -26,7 +26,7 @@ clean:
 .PHONY: lint
 lint:
 	@echo "==> Linting code with 'golangci-lint'..."
-	@${TOOLS_BIN_DIR}/golangci-lint run ./...
+	@${TOOLS_BIN_DIR}/golangci-lint run
 
 
 ## test: Run all tests.
