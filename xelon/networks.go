@@ -25,11 +25,9 @@ type NetworkDetails struct {
 	DNSPrimary     string `json:"dns1,omitempty"`
 	DNSSecondary   string `json:"dns2,omitempty"`
 	ID             int    `json:"id,omitempty"`
-	HVSystemID     int    `json:"hv_system_id,omitempty"`
 	Name           string `json:"displayname,omitempty"`
 	Netmask        string `json:"netmask,omitempty"`
 	Network        string `json:"network,omitempty"`
-	NetworkID      int    `json:"networkid,omitempty"`
 	Subnet         string `json:"subnet,omitempty"`
 	Type           string `json:"type,omitempty"`
 }
@@ -96,6 +94,7 @@ type NetworkAddIPRequest struct {
 }
 
 type NetworkInfo struct {
+	CloudID int             `json:"hvSystemId,omitempty"`
 	Details *NetworkDetails `json:"localnetid,omitempty"`
 	IPs     []IP            `json:"getiplist,omitempty"`
 }
