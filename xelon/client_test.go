@@ -24,7 +24,7 @@ func setup() {
 	server = httptest.NewServer(mux)
 
 	client = NewClient("auth-token")
-	client.BaseURL, _ = url.Parse(fmt.Sprintf("%v/", server.URL))
+	client.baseURL, _ = url.Parse(fmt.Sprintf("%v/", server.URL))
 }
 
 func teardown() {
@@ -35,8 +35,8 @@ func TestClient_NewClient(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.NotNil(t, client.BaseURL)
-	assert.Equal(t, fmt.Sprintf("%v/", server.URL), client.BaseURL.String())
+	assert.NotNil(t, client.baseURL)
+	assert.Equal(t, fmt.Sprintf("%v/", server.URL), client.baseURL.String())
 	assert.Equal(t, "auth-token", client.token)
 }
 
@@ -45,14 +45,14 @@ func TestClient_SetUserAgent(t *testing.T) {
 
 	client.SetUserAgent("custom-user-agent")
 
-	assert.Equal(t, "custom-user-agent", client.UserAgent)
+	assert.Equal(t, "custom-user-agent", client.userAgent)
 }
 
 func TestClient_Defaults(t *testing.T) {
 	client := NewClient("auth-token")
 
-	assert.Equal(t, "https://hq.xelon.ch/api/service/", client.BaseURL.String())
-	assert.Contains(t, client.UserAgent, "xelon-sdk-go/")
+	assert.Equal(t, "https://hq.xelon.ch/api/service/", client.baseURL.String())
+	assert.Contains(t, client.userAgent, "xelon-sdk-go/")
 	assert.Equal(t, 60*time.Second, client.httpClient.Timeout)
 }
 
@@ -62,7 +62,7 @@ func TestClient_WithBaseURL(t *testing.T) {
 		WithBaseURL("https://testing.xelon.ch/"),
 	)
 
-	assert.Equal(t, expectedBaseURL, client.BaseURL)
+	assert.Equal(t, expectedBaseURL, client.baseURL)
 }
 
 func TestClient_WithClientID(t *testing.T) {
@@ -70,7 +70,7 @@ func TestClient_WithClientID(t *testing.T) {
 		WithClientID("custom-client-id"),
 	)
 
-	assert.Equal(t, "custom-client-id", client.ClientID)
+	assert.Equal(t, "custom-client-id", client.clientID)
 }
 
 func TestClient_WithHTTPClient(t *testing.T) {
@@ -88,5 +88,5 @@ func TestClient_WithUserAgent(t *testing.T) {
 		WithUserAgent("custom-user-agent"),
 	)
 
-	assert.Equal(t, "custom-user-agent", client.UserAgent)
+	assert.Equal(t, "custom-user-agent", client.userAgent)
 }
