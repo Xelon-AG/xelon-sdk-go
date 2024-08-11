@@ -33,7 +33,7 @@ You can learn how to obtain it [here](https://www.xelon.ch/docs/xelon-api-101#au
 Then use your token to create a new client:
 
 ```go
-client := client := xelon.NewClient("my-secret-token")
+client := xelon.NewClient("my-secret-token")
 ```
 
 If you want to specify more parameters by client initialization, use
@@ -45,7 +45,7 @@ opts = append(opts, xelon.WithBaseURL(baseURL))
 opts = append(opts, xelon.WithClientID(clientID))
 opts = append(opts, xelon.WithUserAgent(userAgent))
 
-client := client := xelon.NewClient("my-secret-token", opts...)
+client := xelon.NewClient("my-secret-token", opts...)
 ```
 
 ### Examples
