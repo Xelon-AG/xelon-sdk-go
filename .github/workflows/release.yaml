@@ -23,7 +23,6 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-
       - name: Install tools
         run: make tools
 
