@@ -27,12 +27,14 @@ const (
 
 // A Client manages communication with the Xelon API.
 type Client struct {
-	httpClient *http.Client // HTTP client used to communicate with the API.
+	// Base URL for API requests of the Xelon REST API.
+	// baseURL should always be specified with a trailing slash.
+	baseURL *url.URL
 
-	BaseURL   *url.URL // Base URL for API requests. BaseURL should always be specified with a trailing slash.
-	ClientID  string   // ClientID for IP ranges.
-	token     string   // token for Xelon API.
-	UserAgent string   // User agent used when communicating with Xelon API.
+	httpClient *http.Client // HTTP client used to communicate with the API.
+	clientID   string       // ClientID for IP ranges.
+	token      string       // token for Xelon API.
+	userAgent  string       // User agent used when communicating with Xelon API.
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
@@ -89,14 +91,14 @@ type ClientOption func(*Client)
 func WithBaseURL(baseURL string) ClientOption {
 	return func(client *Client) {
 		parsedURL, _ := url.Parse(baseURL)
-		client.BaseURL = parsedURL
+		client.baseURL = parsedURL
 	}
 }
 
 // WithClientID configures Client to use "X-User-Id" http header by all API requests.
 func WithClientID(clientID string) ClientOption {
 	return func(client *Client) {
-		client.ClientID = clientID
+		client.clientID = clientID
 	}
 }
 
@@ -110,7 +112,7 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 // WithUserAgent configures Client to use a specific user agent.
 func WithUserAgent(ua string) ClientOption {
 	return func(client *Client) {
-		client.UserAgent = ua
+		client.userAgent = ua
 	}
 }
 
@@ -122,10 +124,10 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	}
 
 	c := &Client{
-		BaseURL:    baseUrl,
+		baseURL:    baseUrl,
 		httpClient: httpClient,
 		token:      token,
-		UserAgent:  defaultUserAgent,
+		userAgent:  defaultUserAgent,
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -144,7 +146,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.Tenants = (*TenantsService)(&c.common)
 
 	// Notify user if no ClientID is set
-	if c.ClientID == "" {
+	if c.clientID == "" {
 		fmt.Printf("ClientID is not set, please update your credentials\nUsing the HQ-API without the ClientID-Header will be deprecated in 2024\n")
 	}
 
@@ -154,22 +156,22 @@ func NewClient(token string, opts ...ClientOption) *Client {
 // Deprecated: SetBaseURL overrides the default BaseURL. Use WithBaseURL instead.
 func (c *Client) SetBaseURL(baseURL string) {
 	parsedURL, _ := url.Parse(baseURL)
-	c.BaseURL = parsedURL
+	c.baseURL = parsedURL
 }
 
 // Deprecated: SetUserAgent overrides the default UserAgent. Use WithUserAgent instead.
 func (c *Client) SetUserAgent(ua string) {
-	c.UserAgent = ua
+	c.userAgent = ua
 }
 
 // NewRequest creates an API request. A relative URL can be provided in urlStr, in which case it is resolved
 // relative to the BaseURL of the Client. Relative URLs should always be specified without a preceding slash.
 // If specified, the value pointed to by body is JSON encoded and included as the request body.
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
-	if !strings.HasSuffix(c.BaseURL.Path, "/") {
-		return nil, fmt.Errorf("BaseURL must have a traling slash, but %q does not", c.BaseURL)
+	if !strings.HasSuffix(c.baseURL.Path, "/") {
+		return nil, fmt.Errorf("BaseURL must have a traling slash, but %q does not", c.baseURL)
 	}
-	u, err := c.BaseURL.Parse(urlStr)
+	u, err := c.baseURL.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
@@ -192,10 +194,10 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	}
 	req.Header.Set("Accept", defaultMediaType)
 	req.Header.Set("Content-Type", defaultMediaType)
-	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("User-Agent", c.userAgent)
 
-	if c.ClientID != "" {
-		req.Header.Set("X-User-Id", c.ClientID)
+	if c.clientID != "" {
+		req.Header.Set("X-User-Id", c.clientID)
 	}
 
 	return req, nil
