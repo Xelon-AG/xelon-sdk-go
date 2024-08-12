@@ -40,6 +40,7 @@ type Client struct {
 
 	Clouds               *CloudsService
 	Devices              *DevicesService
+	Kubernetes           *KubernetesService
 	LoadBalancerClusters *LoadBalancerClustersService
 	LoadBalancers        *LoadBalancersService
 	Networks             *NetworksService
@@ -110,9 +111,9 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 }
 
 // WithUserAgent configures Client to use a specific user agent.
-func WithUserAgent(ua string) ClientOption {
+func WithUserAgent(userAgent string) ClientOption {
 	return func(client *Client) {
-		client.userAgent = ua
+		client.userAgent = userAgent
 	}
 }
 
@@ -137,6 +138,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 
 	c.Clouds = (*CloudsService)(&c.common)
 	c.Devices = (*DevicesService)(&c.common)
+	c.Kubernetes = (*KubernetesService)(&c.common)
 	c.LoadBalancerClusters = (*LoadBalancerClustersService)(&c.common)
 	c.LoadBalancers = (*LoadBalancersService)(&c.common)
 	c.Networks = (*NetworksService)(&c.common)
