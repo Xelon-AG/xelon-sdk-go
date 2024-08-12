@@ -11,3 +11,8 @@ type Meta struct {
 	PerPage int `json:"per_page,omitempty"`
 	Total   int `json:"total,omitempty"`
 }
+
+// SuccessResponse is a successful response from Xelon API.
+type SuccessResponse struct {
+	Success string `json:"success,omitempty"`
+}
