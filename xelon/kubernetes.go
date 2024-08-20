@@ -50,9 +50,10 @@ type ClusterPool struct {
 }
 
 type ClusterPoolNode struct {
-	ID     string `json:"identifier,omitempty"`
-	Name   string `json:"name,omitempty"`
-	Status string `json:"status,omitempty"`
+	ID        string `json:"identifier,omitempty"`
+	LocalVMID string `json:"localvmid,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Status    string `json:"status,omitempty"`
 }
 
 func (v KubernetesCluster) String() string {
