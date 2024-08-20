@@ -82,8 +82,8 @@ func TestKubernetes_ListClusterPools(t *testing.T) {
   "memory": 4,
   "name": "test cluster pool",
   "nodes": [
-    {"identifier":"def","name":"node-1","status":"Created"},
-    {"identifier":"ghi","name":"node-2","status":"Deployed"}
+    {"identifier":"def","localvmid":"def123","name":"node-1","status":"Created"},
+    {"identifier":"ghi","localvmid":"ghi456","name":"node-2","status":"Deployed"}
   ]
 }]`)
 	})
@@ -94,8 +94,8 @@ func TestKubernetes_ListClusterPools(t *testing.T) {
 		Memory:       4,
 		Name:         "test cluster pool",
 		Nodes: []ClusterPoolNode{
-			{ID: "def", Name: "node-1", Status: "Created"},
-			{ID: "ghi", Name: "node-2", Status: "Deployed"},
+			{ID: "def", LocalVMID: "def123", Name: "node-1", Status: "Created"},
+			{ID: "ghi", LocalVMID: "ghi456", Name: "node-2", Status: "Deployed"},
 		},
 	}}
 
