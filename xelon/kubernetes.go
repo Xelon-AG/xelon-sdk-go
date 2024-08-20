@@ -27,6 +27,19 @@ type KubernetesClusterHealth struct {
 	LastCheckingData string `json:"lastCheckingData,omitempty"`
 }
 
+type ClusterControlPlane struct {
+	CPUCoreCount int                       `json:"control_plane_cpu,omitempty"`
+	DiskSize     int                       `json:"control_plane_disk,omitempty"`
+	Memory       int                       `json:"control_plane_ram,omitempty"`
+	Nodes        []ClusterControlPlaneNode `json:"nodes,omitempty"`
+}
+
+type ClusterControlPlaneNode struct {
+	ID        string `json:"identifier,omitempty"`
+	LocalVMID string `json:"localvmid,omitempty"`
+	Name      string `json:"name,omitempty"`
+}
+
 type ClusterPool struct {
 	CPUCoreCount int               `json:"cpu,omitempty"`
 	DiskSize     int               `json:"disk,omitempty"`
@@ -46,11 +59,15 @@ func (v KubernetesCluster) String() string {
 	return Stringify(v)
 }
 
+func (v ClusterControlPlane) String() string {
+	return Stringify(v)
+}
+
 func (v ClusterPool) String() string {
 	return Stringify(v)
 }
 
-// List providers information about Kubernetes clusters.
+// List provides information about Kubernetes clusters.
 func (s *KubernetesService) List(ctx context.Context) ([]KubernetesCluster, *Response, error) {
 	path := fmt.Sprintf("%v/clusters", kubernetesBasePath)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
@@ -67,7 +84,28 @@ func (s *KubernetesService) List(ctx context.Context) ([]KubernetesCluster, *Res
 	return kubernetesClusters, resp, nil
 }
 
-// ListClusterPools providers information about cluster pools on Kubernetes cluster.
+// ListControlPlanes provides information about control plane on Kubernetes cluster.
+func (s *KubernetesService) ListControlPlanes(ctx context.Context, kubernetesClusterID string) (*ClusterControlPlane, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, ErrEmptyArgument
+	}
+
+	path := fmt.Sprintf("%v/%v/cluster-control-planes", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	clusterControlPlane := new(ClusterControlPlane)
+	resp, err := s.client.Do(ctx, req, clusterControlPlane)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return clusterControlPlane, resp, nil
+}
+
+// ListClusterPools provides information about cluster pools on Kubernetes cluster.
 func (s *KubernetesService) ListClusterPools(ctx context.Context, kubernetesClusterID string) ([]ClusterPool, *Response, error) {
 	if kubernetesClusterID == "" {
 		return nil, nil, ErrEmptyArgument

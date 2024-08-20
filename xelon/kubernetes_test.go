@@ -28,6 +28,46 @@ func TestKubernetes_List(t *testing.T) {
 	assert.Equal(t, expected, clusters)
 }
 
+func TestKubernetes_ListControlPlanes(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/kubernetes-talos/abc/cluster-control-planes", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		_, _ = fmt.Fprint(w, `
+{
+  "control_plane_cpu": 2,
+  "control_plane_disk": 50,
+  "control_plane_ram": 4,
+  "nodes": [
+    {"identifier":"def","localvmid":"def123","name":"cp-node-1"},
+    {"identifier":"ghi","localvmid":"ghi456","name":"cp-node-2"}
+  ]
+}`)
+	})
+	expected := &ClusterControlPlane{
+		CPUCoreCount: 2,
+		DiskSize:     50,
+		Memory:       4,
+		Nodes: []ClusterControlPlaneNode{
+			{ID: "def", LocalVMID: "def123", Name: "cp-node-1"},
+			{ID: "ghi", LocalVMID: "ghi456", Name: "cp-node-2"},
+		},
+	}
+
+	controlPlanes, _, err := client.Kubernetes.ListControlPlanes(ctx, "abc")
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, controlPlanes)
+}
+
+func TestKubernetes_ListControlPlanes_emptyKubernetesClusterID(t *testing.T) {
+	_, _, err := client.Kubernetes.ListControlPlanes(ctx, "")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrEmptyArgument, err)
+}
+
 func TestKubernetes_ListClusterPools(t *testing.T) {
 	setup()
 	defer teardown()
