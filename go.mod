@@ -1,6 +1,8 @@
 module github.com/Xelon-AG/xelon-sdk-go
 
-go 1.22
+go 1.22.1
+
+toolchain go1.23.0
 
 require (
 	github.com/google/go-querystring v1.1.0
