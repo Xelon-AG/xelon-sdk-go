@@ -21,8 +21,6 @@ const (
 	defaultBaseURL   = "https://hq.xelon.ch/api/service/"
 	defaultMediaType = "application/json"
 	defaultUserAgent = "xelon-sdk-go/" + libraryVersion
-
-	headerStackifyID = "X-StackifyID"
 )
 
 // A Client manages communication with the Xelon API.
@@ -271,15 +269,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 // newResponse creates a new Response for the provided http.Response. r must be not nil.
 func newResponse(r *http.Response) *Response {
 	response := &Response{Response: r}
-	response.populateStackifyID()
 	return response
-}
-
-// populateStackifyID parses the request headers and populates the response stackify id.
-func (r *Response) populateStackifyID() {
-	if stackifyID := r.Header.Get(headerStackifyID); stackifyID != "" {
-		r.StackifyID = stackifyID
-	}
 }
 
 // CheckResponse checks the API response for errors, and returns them if present. A response is considered
