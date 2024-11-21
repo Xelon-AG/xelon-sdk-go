@@ -8,8 +8,9 @@ import (
 
 const templatesBasePath = "templates"
 
-// TemplatesService handles communication with the template related methods of the Xelon API.
-type TemplatesService service
+// TemplatesServiceV1 handles communication with the template related methods of the Xelon API.
+// Deprecated.
+type TemplatesServiceV1 service
 
 type Template struct {
 	Description  string `json:"description,omitempty"`
@@ -32,7 +33,7 @@ type Templates struct {
 // List provides a list of available templates.
 //
 // Note, passing 0 (zero) for cloudID will retrieve templates across all available clouds.
-func (s *TemplatesService) List(ctx context.Context, cloudID int) (*Templates, *Response, error) {
+func (s *TemplatesServiceV1) List(ctx context.Context, cloudID int) (*Templates, *Response, error) {
 	path := fmt.Sprintf("device/%s", templatesBasePath)
 	if cloudID != 0 {
 		path = fmt.Sprintf("%v?cloudId=%v", path, cloudID)

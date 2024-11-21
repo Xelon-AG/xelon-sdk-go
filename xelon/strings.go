@@ -8,7 +8,7 @@ import (
 )
 
 // Stringify attempts to create a string representation of Xelon types.
-func Stringify(message interface{}) string {
+func Stringify(message any) string {
 	var buf bytes.Buffer
 	v := reflect.ValueOf(message)
 	stringifyValue(&buf, v)

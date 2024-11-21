@@ -8,8 +8,9 @@ import (
 
 const devicesBasePath = "vmlist"
 
-// DevicesService handles communication with the devices related methods of the Xelon API.
-type DevicesService service
+// DevicesServiceV1 handles communication with the devices related methods of the Xelon API.
+// Deprecated.
+type DevicesServiceV1 service
 
 // Device represents a Xelon device.
 type Device struct {
@@ -95,7 +96,7 @@ type DeviceRoot struct {
 }
 
 // List provides a list of all devices.
-func (s *DevicesService) List(ctx context.Context, tenantID string, opts *DeviceListOptions) ([]DeviceLocalVMDetails, *Response, error) {
+func (s *DevicesServiceV1) List(ctx context.Context, tenantID string, opts *DeviceListOptions) ([]DeviceLocalVMDetails, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -126,7 +127,7 @@ func (s *DevicesService) List(ctx context.Context, tenantID string, opts *Device
 }
 
 // Get provides detailed information for a device identified by tenant and localvmid.
-func (s *DevicesService) Get(ctx context.Context, tenantID, localVMID string) (*DeviceRoot, *Response, error) {
+func (s *DevicesServiceV1) Get(ctx context.Context, tenantID, localVMID string) (*DeviceRoot, *Response, error) {
 	if tenantID == "" || localVMID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -148,7 +149,7 @@ func (s *DevicesService) Get(ctx context.Context, tenantID, localVMID string) (*
 }
 
 // Create makes a new device with given payload.
-func (s *DevicesService) Create(ctx context.Context, createRequest *DeviceCreateRequest) (*DeviceCreateResponse, *Response, error) {
+func (s *DevicesServiceV1) Create(ctx context.Context, createRequest *DeviceCreateRequest) (*DeviceCreateResponse, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
@@ -170,7 +171,7 @@ func (s *DevicesService) Create(ctx context.Context, createRequest *DeviceCreate
 }
 
 // Delete removes a device identified by localvmid.
-func (s *DevicesService) Delete(ctx context.Context, localVMID string) (*Response, error) {
+func (s *DevicesServiceV1) Delete(ctx context.Context, localVMID string) (*Response, error) {
 	if localVMID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -186,7 +187,7 @@ func (s *DevicesService) Delete(ctx context.Context, localVMID string) (*Respons
 }
 
 // Start starts a specific device identified by localvmid.
-func (s *DevicesService) Start(ctx context.Context, localVMID string) (*Response, error) {
+func (s *DevicesServiceV1) Start(ctx context.Context, localVMID string) (*Response, error) {
 	if localVMID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -202,7 +203,7 @@ func (s *DevicesService) Start(ctx context.Context, localVMID string) (*Response
 }
 
 // Stop stops a specific device identified by localvmid.
-func (s *DevicesService) Stop(ctx context.Context, localVMID string) (*Response, error) {
+func (s *DevicesServiceV1) Stop(ctx context.Context, localVMID string) (*Response, error) {
 	if localVMID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -219,7 +220,7 @@ func (s *DevicesService) Stop(ctx context.Context, localVMID string) (*Response,
 
 // GetDeviceCreationInfo retrieves a list of available templates, NICs,
 // and scripts when creating a new device.
-func (s *DevicesService) GetDeviceCreationInfo(ctx context.Context, tenantID, deviceCategory, deviceType string, templateID int) (*DeviceCreationInfo, *Response, error) {
+func (s *DevicesServiceV1) GetDeviceCreationInfo(ctx context.Context, tenantID, deviceCategory, deviceType string, templateID int) (*DeviceCreationInfo, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}

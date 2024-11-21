@@ -7,8 +7,9 @@ import (
 
 const tenantBasePath = "tenant"
 
-// TenantsService handles communication with the user related methods of the Xelon API.
-type TenantsService service
+// TenantsServiceV1 handles communication with the user related methods of the Xelon API.
+// Deprecated.
+type TenantsServiceV1 service
 
 type Tenant struct {
 	Active   bool   `json:"active,omitempty"`
@@ -21,7 +22,7 @@ type Tenant struct {
 // GetCurrent provides information about organization.
 //
 // Note, after calling this method only TenantID field is filled.
-func (s *TenantsService) GetCurrent(ctx context.Context) (*Tenant, *Response, error) {
+func (s *TenantsServiceV1) GetCurrent(ctx context.Context) (*Tenant, *Response, error) {
 	path := tenantBasePath
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
@@ -39,7 +40,7 @@ func (s *TenantsService) GetCurrent(ctx context.Context) (*Tenant, *Response, er
 }
 
 // List provides information about tenant (aka organizations).
-func (s *TenantsService) List(ctx context.Context) ([]Tenant, *Response, error) {
+func (s *TenantsServiceV1) List(ctx context.Context) ([]Tenant, *Response, error) {
 	path := "tenants"
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)

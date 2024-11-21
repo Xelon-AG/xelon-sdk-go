@@ -8,8 +8,9 @@ import (
 
 const sshBasePath = "vmlist/ssh"
 
-// SSHKeysService handles communication with the ssh keys related methods of the Xelon API.
-type SSHKeysService service
+// SSHKeysServiceV1 handles communication with the ssh keys related methods of the Xelon API.
+// Deprecated.
+type SSHKeysServiceV1 service
 
 // SSHKey represents a Xelon ssh key.
 type SSHKey struct {
@@ -30,7 +31,7 @@ func (v SSHKey) String() string {
 }
 
 // List provides a list of all added SSH keys.
-func (s *SSHKeysService) List(ctx context.Context) ([]SSHKey, *Response, error) {
+func (s *SSHKeysServiceV1) List(ctx context.Context) ([]SSHKey, *Response, error) {
 	path := "sshKeys/"
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
@@ -48,7 +49,7 @@ func (s *SSHKeysService) List(ctx context.Context) ([]SSHKey, *Response, error) 
 }
 
 // Create makes a new ssh key with given payload.
-func (s *SSHKeysService) Create(ctx context.Context, createRequest *SSHKeyCreateRequest) (*SSHKey, *Response, error) {
+func (s *SSHKeysServiceV1) Create(ctx context.Context, createRequest *SSHKeyCreateRequest) (*SSHKey, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
@@ -70,7 +71,7 @@ func (s *SSHKeysService) Create(ctx context.Context, createRequest *SSHKeyCreate
 }
 
 // Delete removes a ssh key identified by id.
-func (s *SSHKeysService) Delete(ctx context.Context, sshKeyID int) (*Response, error) {
+func (s *SSHKeysServiceV1) Delete(ctx context.Context, sshKeyID int) (*Response, error) {
 	path := fmt.Sprintf("%v/%v/delete", sshBasePath, sshKeyID)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
