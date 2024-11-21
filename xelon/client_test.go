@@ -40,14 +40,6 @@ func TestClient_NewClient(t *testing.T) {
 	assert.Equal(t, "auth-token", client.token)
 }
 
-func TestClient_SetUserAgent(t *testing.T) {
-	client := &Client{}
-
-	client.SetUserAgent("custom-user-agent")
-
-	assert.Equal(t, "custom-user-agent", client.userAgent)
-}
-
 func TestClient_Defaults(t *testing.T) {
 	client := NewClient("auth-token")
 

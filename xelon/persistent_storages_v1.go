@@ -8,8 +8,9 @@ import (
 
 const persistentStorageBasePath = "persistentStorage"
 
-// PersistentStoragesService handles communication with the persistent storage related methods of the Xelon API.
-type PersistentStoragesService service
+// PersistentStoragesServiceV1 handles communication with the persistent storage related methods of the Xelon API.
+// Deprecated.
+type PersistentStoragesServiceV1 service
 
 type PersistentStorage struct {
 	AssignedServers []DeviceLocalVMDetails `json:"assigned_servers,omitempty"`
@@ -36,7 +37,7 @@ type PersistentStorageAttachDetachRequest struct {
 	ServerID []string `json:"server_id"`
 }
 
-func (s *PersistentStoragesService) List(ctx context.Context, tenantID string) ([]PersistentStorage, *Response, error) {
+func (s *PersistentStoragesServiceV1) List(ctx context.Context, tenantID string) ([]PersistentStorage, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -56,7 +57,7 @@ func (s *PersistentStoragesService) List(ctx context.Context, tenantID string) (
 	return persistentStorages, resp, nil
 }
 
-func (s *PersistentStoragesService) Get(ctx context.Context, tenantID, localID string) (*PersistentStorage, *Response, error) {
+func (s *PersistentStoragesServiceV1) Get(ctx context.Context, tenantID, localID string) (*PersistentStorage, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -76,7 +77,7 @@ func (s *PersistentStoragesService) Get(ctx context.Context, tenantID, localID s
 	return persistentStorage, resp, nil
 }
 
-func (s *PersistentStoragesService) GetByName(ctx context.Context, tenantID, name string) (*PersistentStorage, *Response, error) {
+func (s *PersistentStoragesServiceV1) GetByName(ctx context.Context, tenantID, name string) (*PersistentStorage, *Response, error) {
 	if tenantID == "" || name == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -96,7 +97,7 @@ func (s *PersistentStoragesService) GetByName(ctx context.Context, tenantID, nam
 	return persistentStorage, resp, nil
 }
 
-func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *Response, error) {
+func (s *PersistentStoragesServiceV1) Create(ctx context.Context, tenantID string, createRequest *PersistentStorageCreateRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -119,7 +120,7 @@ func (s *PersistentStoragesService) Create(ctx context.Context, tenantID string,
 	return apiResponse, resp, nil
 }
 
-func (s *PersistentStoragesService) Extend(ctx context.Context, localID string, extendRequest *PersistentStorageExtendRequest) (*APIResponse, *Response, error) {
+func (s *PersistentStoragesServiceV1) Extend(ctx context.Context, localID string, extendRequest *PersistentStorageExtendRequest) (*APIResponse, *Response, error) {
 	if localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -142,7 +143,7 @@ func (s *PersistentStoragesService) Extend(ctx context.Context, localID string, 
 	return apiResponse, resp, nil
 }
 
-func (s *PersistentStoragesService) Delete(ctx context.Context, tenantID, localID string) (*Response, error) {
+func (s *PersistentStoragesServiceV1) Delete(ctx context.Context, tenantID, localID string) (*Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -156,7 +157,7 @@ func (s *PersistentStoragesService) Delete(ctx context.Context, tenantID, localI
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *PersistentStoragesService) AttachToDevice(ctx context.Context, tenantID, localID string, attachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *Response, error) {
+func (s *PersistentStoragesServiceV1) AttachToDevice(ctx context.Context, tenantID, localID string, attachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -178,7 +179,7 @@ func (s *PersistentStoragesService) AttachToDevice(ctx context.Context, tenantID
 	return apiResponse, resp, nil
 }
 
-func (s *PersistentStoragesService) DetachFromDevice(ctx context.Context, tenantID, localID string, detachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *Response, error) {
+func (s *PersistentStoragesServiceV1) DetachFromDevice(ctx context.Context, tenantID, localID string, detachRequest *PersistentStorageAttachDetachRequest) (*APIResponse, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}

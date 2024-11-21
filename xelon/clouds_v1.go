@@ -8,8 +8,9 @@ import (
 
 const cloudsBasePath = "hv"
 
-// CloudsService handles communication with the organization's cloud related methods of the Xelon API.
-type CloudsService service
+// CloudsServiceV1 handles communication with the organization's cloud related methods of the Xelon API.
+// Deprecated.
+type CloudsServiceV1 service
 
 type Cloud struct {
 	ID        int    `json:"id,omitempty"`
@@ -18,7 +19,7 @@ type Cloud struct {
 	Type      int    `json:"type,omitempty"`
 }
 
-func (s *CloudsService) List(ctx context.Context, tenantID string) ([]Cloud, *Response, error) {
+func (s *CloudsServiceV1) List(ctx context.Context, tenantID string) ([]Cloud, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
