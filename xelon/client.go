@@ -18,7 +18,7 @@ import (
 const (
 	libraryVersion = "0.15.1"
 
-	defaultBaseURL   = "https://hq.xelon.ch/api/service/"
+	defaultBaseURL   = "https://hq.xelon.ch/api/v2/"
 	defaultMediaType = "application/json"
 	defaultUserAgent = "xelon-sdk-go/" + libraryVersion
 )
