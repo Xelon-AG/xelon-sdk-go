@@ -43,7 +43,7 @@ type Client struct {
 	LoadBalancers        *LoadBalancersService
 	Networks             *NetworksServiceV1
 	PersistentStorages   *PersistentStoragesServiceV1
-	SSHKeys              *SSHKeysServiceV1
+	SSHKeys              *SSHKeysService
 	Templates            *TemplatesServiceV1
 	Tenants              *TenantsServiceV1
 }
@@ -52,19 +52,18 @@ type service struct {
 	client *Client
 }
 
-// ListOptions specifies the optional parameters to various List methods that
-// support pagination.
+// ListOptions specifies the optional parameters to various List methods that support pagination.
 type ListOptions struct {
 	// Page of results to retrieve.
 	Page int `url:"page,omitempty"`
 
 	// PerPage specifies the number of results to include per page.
-	PerPage int `url:"per_page,omitempty"`
+	PerPage int `url:"perPage,omitempty"`
 }
 
 // addOptions adds the parameters in opts as URL query parameters to s. opts
 // must be a struct whose fields may contain "url" tags.
-func addOptions(s string, opts interface{}) (string, error) {
+func addOptions(s string, opts any) (string, error) {
 	v := reflect.ValueOf(opts)
 	if v.Kind() == reflect.Ptr && v.IsNil() {
 		return s, nil
@@ -141,7 +140,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.LoadBalancers = (*LoadBalancersService)(&c.common)
 	c.Networks = (*NetworksServiceV1)(&c.common)
 	c.PersistentStorages = (*PersistentStoragesServiceV1)(&c.common)
-	c.SSHKeys = (*SSHKeysServiceV1)(&c.common)
+	c.SSHKeys = (*SSHKeysService)(&c.common)
 	c.Templates = (*TemplatesServiceV1)(&c.common)
 	c.Tenants = (*TenantsServiceV1)(&c.common)
 
@@ -196,9 +195,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 type Response struct {
 	*http.Response
 
-	Meta *Meta // Meta describes generic information about the response.
-
-	StackifyID string // StackifyID returned from the API, useful to contact support.
+	Meta *Meta
 }
 
 // Do sends an API request and returns the API response. The API response is JSON decoded and stored in

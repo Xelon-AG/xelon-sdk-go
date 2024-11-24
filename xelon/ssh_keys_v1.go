@@ -6,14 +6,15 @@ import (
 	"net/http"
 )
 
-const sshBasePath = "vmlist/ssh"
+const sshBasePathV1 = "vmlist/ssh"
 
 // SSHKeysServiceV1 handles communication with the ssh keys related methods of the Xelon API.
 // Deprecated.
 type SSHKeysServiceV1 service
 
-// SSHKey represents a Xelon ssh key.
-type SSHKey struct {
+// SSHKeyV1 represents a Xelon ssh key.
+// Deprecated.
+type SSHKeyV1 struct {
 	CreatedAt   string `json:"created_at,omitempty"`
 	Fingerprint string `json:"fingerprint,omitempty"`
 	ID          int    `json:"id,omitempty"`
@@ -21,17 +22,18 @@ type SSHKey struct {
 	PublicKey   string `json:"ssh_key,omitempty"`
 }
 
-// SSHKeyCreateRequest represents a request to create a ssh key.
-type SSHKeyCreateRequest struct {
-	*SSHKey
+// SSHKeyCreateRequestV1 represents a request to create an ssh key.
+// Deprecated.
+type SSHKeyCreateRequestV1 struct {
+	*SSHKeyV1
 }
 
-func (v SSHKey) String() string {
+func (v SSHKeyV1) String() string {
 	return Stringify(v)
 }
 
 // List provides a list of all added SSH keys.
-func (s *SSHKeysServiceV1) List(ctx context.Context) ([]SSHKey, *Response, error) {
+func (s *SSHKeysServiceV1) List(ctx context.Context) ([]SSHKeyV1, *Response, error) {
 	path := "sshKeys/"
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
@@ -39,7 +41,7 @@ func (s *SSHKeysServiceV1) List(ctx context.Context) ([]SSHKey, *Response, error
 		return nil, nil, err
 	}
 
-	var sshKeys []SSHKey
+	var sshKeys []SSHKeyV1
 	resp, err := s.client.Do(ctx, req, &sshKeys)
 	if err != nil {
 		return nil, resp, err
@@ -49,19 +51,19 @@ func (s *SSHKeysServiceV1) List(ctx context.Context) ([]SSHKey, *Response, error
 }
 
 // Create makes a new ssh key with given payload.
-func (s *SSHKeysServiceV1) Create(ctx context.Context, createRequest *SSHKeyCreateRequest) (*SSHKey, *Response, error) {
+func (s *SSHKeysServiceV1) Create(ctx context.Context, createRequest *SSHKeyCreateRequestV1) (*SSHKeyV1, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
 
-	path := fmt.Sprintf("%v/add", sshBasePath)
+	path := fmt.Sprintf("%v/add", sshBasePathV1)
 
 	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	sshKey := new(SSHKey)
+	sshKey := new(SSHKeyV1)
 	resp, err := s.client.Do(ctx, req, sshKey)
 	if err != nil {
 		return nil, resp, err
@@ -72,7 +74,7 @@ func (s *SSHKeysServiceV1) Create(ctx context.Context, createRequest *SSHKeyCrea
 
 // Delete removes a ssh key identified by id.
 func (s *SSHKeysServiceV1) Delete(ctx context.Context, sshKeyID int) (*Response, error) {
-	path := fmt.Sprintf("%v/%v/delete", sshBasePath, sshKeyID)
+	path := fmt.Sprintf("%v/%v/delete", sshBasePathV1, sshKeyID)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err

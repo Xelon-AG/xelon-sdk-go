@@ -86,7 +86,7 @@ type DeviceListOptions struct {
 
 type deviceListRoot struct {
 	Devices []DeviceLocalVMDetails `json:"data,omitempty"`
-	Meta
+	MetaV1
 }
 
 // DeviceRoot represents a Xelon device root object.
@@ -117,11 +117,11 @@ func (s *DevicesServiceV1) List(ctx context.Context, tenantID string, opts *Devi
 	if err != nil {
 		return nil, resp, err
 	}
-	resp.Meta = &Meta{
-		Page:    root.Page,
-		PerPage: root.PerPage,
-		Total:   root.Total,
-	}
+	// resp.Meta = &MetaV1{
+	// 	Page:    root.Page,
+	// 	PerPage: root.PerPage,
+	// 	Total:   root.Total,
+	// }
 
 	return root.Devices, resp, nil
 }

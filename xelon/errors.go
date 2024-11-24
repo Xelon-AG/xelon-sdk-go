@@ -49,13 +49,8 @@ func (e ErrorElement) String() string {
 }
 
 func (r *ErrorResponse) Error() string {
-	if r.Response.StackifyID != "" {
-		return fmt.Sprintf("%v %v: %d (stackify id %v) %+v",
-			r.Response.Request.Method, sanitizeURL(r.Response.Request.URL), r.Response.StatusCode, r.Response.StackifyID, r.ErrorElement)
-	} else {
-		return fmt.Sprintf("%v %v: %d %+v",
-			r.Response.Request.Method, sanitizeURL(r.Response.Request.URL), r.Response.StatusCode, r.ErrorElement)
-	}
+	return fmt.Sprintf("%v %v: %d %+v",
+		r.Response.Request.Method, sanitizeURL(r.Response.Request.URL), r.Response.StatusCode, r.ErrorElement)
 }
 
 func (w *ErrorWrapper) UnmarshalJSON(data []byte) error {

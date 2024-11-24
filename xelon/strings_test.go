@@ -30,8 +30,8 @@ func TestStringify(t *testing.T) {
 
 		{
 			"XelonTypeSSHKey",
-			SSHKey{Fingerprint: "fingerprint-text", ID: 1, Name: "name-text", PublicKey: "public-key-text"},
-			`xelon.SSHKey{CreatedAt:"", Fingerprint:"fingerprint-text", ID:1, Name:"name-text", PublicKey:"public-key-text"}`,
+			SSHKeyV1{Fingerprint: "fingerprint-text", ID: 1, Name: "name-text", PublicKey: "public-key-text"},
+			`xelon.SSHKeyV1{CreatedAt:"", Fingerprint:"fingerprint-text", ID:1, Name:"name-text", PublicKey:"public-key-text"}`,
 		},
 	}
 

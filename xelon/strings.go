@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"time"
 )
+
+var timeType = reflect.TypeOf(time.Time{})
 
 // Stringify attempts to create a string representation of Xelon types.
 func Stringify(message any) string {
@@ -55,6 +58,12 @@ func stringifySlice(w io.Writer, v reflect.Value) {
 func stringifyStruct(w io.Writer, v reflect.Value) {
 	if v.Type().Name() != "" {
 		_, _ = w.Write([]byte(v.Type().String()))
+	}
+
+	// special case for time.Time values
+	if v.Type() == timeType {
+		_, _ = fmt.Fprintf(w, "{%s}", v.Interface())
+		return
 	}
 
 	_, _ = w.Write([]byte{'{'})

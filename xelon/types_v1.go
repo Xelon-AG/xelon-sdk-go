@@ -6,7 +6,7 @@ type APIResponse struct {
 	PersistentStorage *PersistentStorage `json:"persistentStorage,omitempty"`
 }
 
-type Meta struct {
+type MetaV1 struct {
 	Page    int `json:"current_page,omitempty"`
 	PerPage int `json:"per_page,omitempty"`
 	Total   int `json:"total,omitempty"`
