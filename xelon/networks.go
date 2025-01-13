@@ -13,14 +13,15 @@ const networkBasePath = "networks"
 type NetworksService service
 
 type Network struct {
-	DNSPrimary   string `json:"dns1,omitempty"`
-	DNSSecondary string `json:"dns2,omitempty"`
-	Gateway      string `json:"gateway,omitempty"`
-	ID           string `json:"identifier,omitempty"`
-	Name         string `json:"name,omitempty"`
-	Network      string `json:"network,omitempty"`
-	SubnetSize   int    `json:"networkSize,omitempty"`
-	Type         string `json:"type,omitempty"`
+	Clouds       []Cloud `json:"clouds,omitempty"`
+	DNSPrimary   string  `json:"dns1,omitempty"`
+	DNSSecondary string  `json:"dns2,omitempty"`
+	Gateway      string  `json:"gateway,omitempty"`
+	ID           string  `json:"identifier,omitempty"`
+	Name         string  `json:"name,omitempty"`
+	Network      string  `json:"network,omitempty"`
+	SubnetSize   int     `json:"networkSize,omitempty"`
+	Type         string  `json:"type,omitempty"`
 }
 
 type NetworkCreateRequest struct {
