@@ -49,13 +49,24 @@ type LoadBalancerClusterVirtualIP struct {
 }
 
 type LoadBalancerClusterForwardingRule struct {
-	Backend  *LoadBalancerClusterForwardingRuleConfiguration `json:"backend,omitempty"`
-	Frontend *LoadBalancerClusterForwardingRuleConfiguration `json:"frontend,omitempty"`
+	Backend  *LoadBalancerClusterForwardingRuleBackendConfiguration  `json:"backend,omitempty"`
+	Frontend *LoadBalancerClusterForwardingRuleFrontendConfiguration `json:"frontend,omitempty"`
 }
 
-type LoadBalancerClusterForwardingRuleConfiguration struct {
+type LoadBalancerClusterForwardingRuleBackendConfiguration struct {
+	ID            string `json:"identifier,omitempty"`
+	Port          int    `json:"port,omitempty"`
+	ProxyProtocol int    `json:"proxy_protocol,omitempty"`
+}
+
+type LoadBalancerClusterForwardingRuleFrontendConfiguration struct {
 	ID   string `json:"identifier,omitempty"`
 	Port int    `json:"port,omitempty"`
+}
+
+type LoadBalancerClusterForwardingRuleUpdateResponse struct {
+	Port          int `json:"port,omitempty"`
+	ProxyProtocol int `json:"proxy_protocol,omitempty"`
 }
 
 // List provides information about load balancer clusters.
@@ -220,7 +231,7 @@ func (s *LoadBalancerClustersService) CreateForwardingRules(ctx context.Context,
 }
 
 // UpdateForwardingRule changes the configuration of a forwarding rule.
-func (s *LoadBalancerClustersService) UpdateForwardingRule(ctx context.Context, loadBalancerClusterID, virtualIPID, forwardingRuleID string, updateRequest *LoadBalancerClusterForwardingRuleConfiguration) (*APIResponse, *Response, error) {
+func (s *LoadBalancerClustersService) UpdateForwardingRule(ctx context.Context, loadBalancerClusterID, virtualIPID, forwardingRuleID string, updateRequest *LoadBalancerClusterForwardingRuleUpdateResponse) (*APIResponse, *Response, error) {
 	if loadBalancerClusterID == "" || virtualIPID == "" || forwardingRuleID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
