@@ -56,7 +56,7 @@ type LoadBalancerClusterForwardingRule struct {
 type LoadBalancerClusterForwardingRuleBackendConfiguration struct {
 	ID            string `json:"identifier,omitempty"`
 	Port          int    `json:"port,omitempty"`
-	ProxyProtocol int    `json:"proxy_protocol,omitempty"`
+	ProxyProtocol int    `json:"proxy_protocol"`
 }
 
 type LoadBalancerClusterForwardingRuleFrontendConfiguration struct {
