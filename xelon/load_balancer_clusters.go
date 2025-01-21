@@ -65,8 +65,8 @@ type LoadBalancerClusterForwardingRuleFrontendConfiguration struct {
 }
 
 type LoadBalancerClusterForwardingRuleUpdateResponse struct {
-	Port          int `json:"port,omitempty"`
-	ProxyProtocol int `json:"proxy_protocol,omitempty"`
+	Port          int `json:"port"`
+	ProxyProtocol int `json:"proxy_protocol"`
 }
 
 // List provides information about load balancer clusters.
