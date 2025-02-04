@@ -18,6 +18,7 @@ type Device struct {
 	DisplayName string `json:"displayName,omitempty"`
 	HostName    string `json:"hostName,omitempty"`
 	ID          string `json:"identifier,omitempty"`
+	PoweredOn   bool   `json:"isPoweredOn,omitempty"`
 	RAM         int    `json:"ram,omitempty"`
 	TemplateID  string `json:"templateId,omitempty"`
 	TenantID    string `json:"tenantIdentifier,omitempty"`
