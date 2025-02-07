@@ -5,13 +5,13 @@ import (
 	"net/http"
 )
 
-const tenantBasePath = "tenant"
+// const tenantBasePathV1 = "tenant"
 
 // TenantsServiceV1 handles communication with the user related methods of the Xelon API.
 // Deprecated.
 type TenantsServiceV1 service
 
-type Tenant struct {
+type TenantV1 struct {
 	Active   bool   `json:"active,omitempty"`
 	ID       string `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`

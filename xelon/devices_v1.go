@@ -16,7 +16,7 @@ type DevicesServiceV1 service
 type DeviceV1 struct {
 	CPU            int                   `json:"cpu"`
 	LocalVMDetails *DeviceLocalVMDetails `json:"localvmdetails,omitempty"`
-	Networks       []DeviceNetworkV1       `json:"networks,omitempty"`
+	Networks       []DeviceNetworkV1     `json:"networks,omitempty"`
 	PowerState     bool                  `json:"powerstate"`
 	RAM            int                   `json:"ram"`
 }
