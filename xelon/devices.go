@@ -14,26 +14,32 @@ type DevicesService service
 
 // Device represents a Xelon device (virtual machine).
 type Device struct {
-	CPUCores    int    `json:"cpu,omitempty"`
-	DisplayName string `json:"displayName,omitempty"`
-	HostName    string `json:"hostName,omitempty"`
-	ID          string `json:"identifier,omitempty"`
-	PoweredOn   bool   `json:"isPoweredOn,omitempty"`
-	RAM         int    `json:"ram,omitempty"`
-	State       int    `json:"state,omitempty"`
-	TemplateID  string `json:"templateId,omitempty"`
-	TenantID    string `json:"tenantIdentifier,omitempty"`
+	CPUCores          int    `json:"cpu,omitempty"`
+	DisplayName       string `json:"displayName,omitempty"`
+	HostName          string `json:"hostName,omitempty"`
+	ID                string `json:"identifier,omitempty"`
+	MonitoringEnabled bool   `json:"monitoring,omitempty"`
+	PoweredOn         bool   `json:"isPoweredOn,omitempty"`
+	RAM               int    `json:"ram,omitempty"`
+	State             int    `json:"state,omitempty"`
+	TemplateID        string `json:"templateId,omitempty"`
+	TenantID          string `json:"tenantIdentifier,omitempty"`
 }
 
 type DeviceCreateRequest struct {
+	BackupJobID          int                   `json:"backJobId,omitempty"`
 	CPUCores             int                   `json:"cpu"`
 	DiskSize             int                   `json:"diskSize"`
 	DisplayName          string                `json:"displayName"`
 	HostName             string                `json:"hostName"`
+	EnableMonitoring     bool                  `json:"isMonitoring"`
 	Networks             []DeviceCreateNetwork `json:"networks,omitempty"`
 	Password             string                `json:"password"`
 	PasswordConfirmation string                `json:"passwordConfirmation"`
 	RAM                  int                   `json:"ram"`
+	ScriptID             string                `json:"scriptId,omitempty"`
+	SendEmail            bool                  `json:"sendEmail,omitempty"`
+	SSHKeyID             string                `json:"sshKeyId,omitempty"`
 	SwapDiskSize         int                   `json:"swapDiskSize"`
 	TemplateID           string                `json:"templateId"`
 	TenantID             string                `json:"tenantIdentifier"`
