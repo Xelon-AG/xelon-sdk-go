@@ -68,7 +68,7 @@ type NICIP struct {
 //
 // IPAddresses is optional, can either be single "10.0.0.1" or multiple
 // "10.0.0.1-10.0.0.254" entries.
-type NetworkLANCreateRequest struct {
+type NetworkLANCreateRequestV1 struct {
 	CloudID      int    `json:"cloudId"`
 	DisplayName  string `json:"displayname"`
 	DNSPrimary   string `json:"dns1"`

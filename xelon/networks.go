@@ -16,17 +16,29 @@ type Network struct {
 	Clouds       []Cloud `json:"clouds,omitempty"`
 	DNSPrimary   string  `json:"dns1,omitempty"`
 	DNSSecondary string  `json:"dns2,omitempty"`
+	Free         bool    `json:"isFree,omitempty"`
 	Gateway      string  `json:"gateway,omitempty"`
 	ID           string  `json:"identifier,omitempty"`
 	Name         string  `json:"name,omitempty"`
 	Network      string  `json:"network,omitempty"`
+	NetworkSpeed int     `json:"networkSpeedValue,omitempty"`
+	Stretched    bool    `json:"isStretched,omitempty"`
 	SubnetSize   int     `json:"networkSize,omitempty"`
 	Type         string  `json:"type,omitempty"`
 }
 
-type NetworkCreateRequest struct {
-	CloudID string `json:"cloudIdentifier"`
-	Network
+type NetworkLANCreateRequest struct {
+	CloudID            string `json:"cloudIdentifier"`
+	CloudForStretching string `json:"cloudForStretching,omitempty"`
+	DNSPrimary         string `json:"dns1"`
+	DNSSecondary       string `json:"dns2,omitempty"`
+	Gateway            string `json:"gateway"`
+	Name               string `json:"name"`
+	Network            string `json:"network"`
+	NetworkSpeed       int    `json:"networkSpeedValue"`
+	Stretched          bool   `json:"isStretched,omitempty"`
+	SubnetSize         int    `json:"networkSize"`
+	TenantID           string `json:"tenantIdentifier,omitempty"`
 }
 
 type NetworkUpdateRequest struct {
@@ -98,13 +110,13 @@ func (s *NetworksService) Get(ctx context.Context, networkID string) (*Network, 
 	return network, resp, nil
 }
 
-// Create makes a new network with given payload.
-func (s *NetworksService) Create(ctx context.Context, createRequest *NetworkCreateRequest) (*Network, *Response, error) {
+// CreateLAN makes a new LAN network with given payload.
+func (s *NetworksService) CreateLAN(ctx context.Context, createRequest *NetworkLANCreateRequest) (*Network, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, errors.New("failed to create network: payload must be supplied")
 	}
 
-	path := fmt.Sprintf("%v/wan", networkBasePath)
+	path := fmt.Sprintf("%v/lan", networkBasePath)
 	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
