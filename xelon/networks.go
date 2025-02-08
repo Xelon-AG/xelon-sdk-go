@@ -41,6 +41,16 @@ type NetworkLANCreateRequest struct {
 	TenantID           string `json:"tenantIdentifier,omitempty"`
 }
 
+type NetworkWANCreateRequest struct {
+	CloudID            string `json:"cloudIdentifier"`
+	CloudForStretching string `json:"cloudForStretching,omitempty"`
+	Name               string `json:"name"`
+	NetworkSpeed       int    `json:"networkSpeedValue"`
+	Stretched          bool   `json:"isStretched,omitempty"`
+	SubnetSize         int    `json:"networkSize"`
+	TenantID           string `json:"tenantIdentifier,omitempty"`
+}
+
 type NetworkUpdateRequest struct {
 	Network
 }
@@ -113,10 +123,31 @@ func (s *NetworksService) Get(ctx context.Context, networkID string) (*Network, 
 // CreateLAN makes a new LAN network with given payload.
 func (s *NetworksService) CreateLAN(ctx context.Context, createRequest *NetworkLANCreateRequest) (*Network, *Response, error) {
 	if createRequest == nil {
-		return nil, nil, errors.New("failed to create network: payload must be supplied")
+		return nil, nil, errors.New("failed to create LAN network: payload must be supplied")
 	}
 
 	path := fmt.Sprintf("%v/lan", networkBasePath)
+	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	networkRoot := new(networkRoot)
+	resp, err := s.client.Do(ctx, req, networkRoot)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return networkRoot.Network, resp, nil
+}
+
+// CreateWAN makes a new WAN network with given payload.
+func (s *NetworksService) CreateWAN(ctx context.Context, createRequest *NetworkWANCreateRequest) (*Network, *Response, error) {
+	if createRequest == nil {
+		return nil, nil, errors.New("failed to create WAN network: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/wan", networkBasePath)
 	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
