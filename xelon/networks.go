@@ -22,6 +22,7 @@ type Network struct {
 	Name         string  `json:"name,omitempty"`
 	Network      string  `json:"network,omitempty"`
 	NetworkSpeed int     `json:"networkSpeedValue,omitempty"`
+	Owner        *Tenant `json:"owner,omitempty"`
 	Stretched    bool    `json:"isStretched,omitempty"`
 	SubnetSize   int     `json:"networkSize,omitempty"`
 	Type         string  `json:"type,omitempty"`
