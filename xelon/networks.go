@@ -41,6 +41,15 @@ type NetworkLANCreateRequest struct {
 	TenantID           string `json:"tenantIdentifier,omitempty"`
 }
 
+type NetworkLANUpdateRequest struct {
+	DNSPrimary   string `json:"dns1"`
+	DNSSecondary string `json:"dns2,omitempty"`
+	Gateway      string `json:"gateway"`
+	Name         string `json:"name"`
+	Network      string `json:"network"`
+	NetworkSpeed int    `json:"networkSpeedValue"`
+}
+
 type NetworkWANCreateRequest struct {
 	CloudID            string `json:"cloudIdentifier"`
 	CloudForStretching string `json:"cloudForStretching,omitempty"`
@@ -49,10 +58,6 @@ type NetworkWANCreateRequest struct {
 	Stretched          bool   `json:"isStretched,omitempty"`
 	SubnetSize         int    `json:"networkSize"`
 	TenantID           string `json:"tenantIdentifier,omitempty"`
-}
-
-type NetworkUpdateRequest struct {
-	Network
 }
 
 // NetworkListOptions specifies the optional parameters to the NetworksService.List.
@@ -141,6 +146,30 @@ func (s *NetworksService) CreateLAN(ctx context.Context, createRequest *NetworkL
 	return networkRoot.Network, resp, nil
 }
 
+// UpdateLAN changes network identified by id.
+func (s *NetworksService) UpdateLAN(ctx context.Context, networkID string, updateRequest *NetworkLANUpdateRequest) (*Network, *Response, error) {
+	if networkID == "" {
+		return nil, nil, errors.New("failed to update LAN network: id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, nil, errors.New("failed to update LAN network: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/lan", networkBasePath, networkID)
+	req, err := s.client.NewRequest(http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	network := new(Network)
+	resp, err := s.client.Do(ctx, req, network)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return network, resp, nil
+}
+
 // CreateWAN makes a new WAN network with given payload.
 func (s *NetworksService) CreateWAN(ctx context.Context, createRequest *NetworkWANCreateRequest) (*Network, *Response, error) {
 	if createRequest == nil {
@@ -160,30 +189,6 @@ func (s *NetworksService) CreateWAN(ctx context.Context, createRequest *NetworkW
 	}
 
 	return networkRoot.Network, resp, nil
-}
-
-// Update changes network identified by id.
-func (s *NetworksService) Update(ctx context.Context, networkID string, updateRequest *NetworkUpdateRequest) (*Network, *Response, error) {
-	if networkID == "" {
-		return nil, nil, errors.New("failed to update network: id must be supplied")
-	}
-	if updateRequest == nil {
-		return nil, nil, errors.New("failed to update network: payload must be supplied")
-	}
-
-	path := fmt.Sprintf("%v/%v/wan", networkBasePath, networkID)
-	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	network := new(Network)
-	resp, err := s.client.Do(ctx, req, network)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return network, resp, nil
 }
 
 // Delete removes network identified by id.
