@@ -2,6 +2,7 @@ package xelon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -74,4 +75,25 @@ func (s *TenantsService) List(ctx context.Context, opts *TenantListOptions) ([]T
 	}
 
 	return root.Tenants, resp, nil
+}
+
+// Get provides detailed information for tenant identified by id.
+func (s *TenantsService) Get(ctx context.Context, tenantID string) (*Tenant, *Response, error) {
+	if tenantID == "" {
+		return nil, nil, errors.New("failed to get tenant: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v", tenantBasePath, tenantID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tenant := new(Tenant)
+	resp, err := s.client.Do(ctx, req, tenant)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return tenant, resp, nil
 }
