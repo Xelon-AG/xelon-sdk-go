@@ -154,6 +154,7 @@ func (s *DevicesService) Delete(ctx context.Context, deviceID string) (*Response
 	return s.client.Do(ctx, req, nil)
 }
 
+// Start sends 'start' action and starts device identified by id.
 func (s *DevicesService) Start(ctx context.Context, deviceID string) (*Response, error) {
 	if deviceID == "" {
 		return nil, errors.New("failed to start device: id must be supplied")
@@ -168,6 +169,7 @@ func (s *DevicesService) Start(ctx context.Context, deviceID string) (*Response,
 	return s.client.Do(ctx, req, nil)
 }
 
+// Stop sends an ACPI shutdown to device identified by id.
 func (s *DevicesService) Stop(ctx context.Context, deviceID string) (*Response, error) {
 	if deviceID == "" {
 		return nil, errors.New("failed to stop device: id must be supplied")
