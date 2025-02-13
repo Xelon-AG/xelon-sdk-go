@@ -47,11 +47,9 @@ type DeviceCreateRequest struct {
 
 type DeviceCreateNetwork struct {
 	ConnectOnPowerOn bool   `json:"connectOnPowerOn"`
-	ControllerKey    int    `json:"controllerKey"`
-	IPAddress        string `json:"ip"`
-	Key              int    `json:"key"`
+	IPAddress        string `json:"ip,omitempty"`
+	IPAddressID      string `json:"ipId,omitempty"`
 	NetworkID        string `json:"networkId"`
-	UnitNumber       int    `json:"unitNumber"`
 }
 
 // DeviceListOptions specifies the optional parameters to the DevicesService.List.
