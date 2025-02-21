@@ -56,6 +56,11 @@ type DeviceUpdateRequest struct {
 	DisplayName string `json:"displayName"`
 }
 
+type DeviceUpdateHardwareRequest struct {
+	CPUCores int `json:"cpu"`
+	RAM      int `json:"ram"`
+}
+
 // DeviceListOptions specifies the optional parameters to the DevicesService.List.
 type DeviceListOptions struct {
 	Sort   string `url:"sort,omitempty"`
@@ -151,6 +156,30 @@ func (s *DevicesService) Update(ctx context.Context, deviceID string, updateRequ
 	}
 
 	path := fmt.Sprintf("%v/%v", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	deviceRoot := new(deviceRoot)
+	resp, err := s.client.Do(ctx, req, deviceRoot)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return deviceRoot.Device, resp, nil
+}
+
+// UpdateHardware changes device hardware identified by id.
+func (s *DevicesService) UpdateHardware(ctx context.Context, deviceID string, updateRequest *DeviceUpdateHardwareRequest) (*Device, *Response, error) {
+	if deviceID == "" {
+		return nil, nil, errors.New("failed to update device hardware: id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, nil, errors.New("failed to update device hardware: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/hardware", deviceBasePath, deviceID)
 	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
