@@ -52,6 +52,10 @@ type DeviceCreateNetwork struct {
 	NetworkID        string `json:"networkId"`
 }
 
+type DeviceUpdateRequest struct {
+	DisplayName string `json:"displayName"`
+}
+
 // DeviceListOptions specifies the optional parameters to the DevicesService.List.
 type DeviceListOptions struct {
 	Sort   string `url:"sort,omitempty"`
@@ -124,6 +128,30 @@ func (s *DevicesService) Create(ctx context.Context, createRequest *DeviceCreate
 	}
 
 	req, err := s.client.NewRequest(http.MethodPost, deviceBasePath, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	deviceRoot := new(deviceRoot)
+	resp, err := s.client.Do(ctx, req, deviceRoot)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return deviceRoot.Device, resp, nil
+}
+
+// Update changes device identified by id.
+func (s *DevicesService) Update(ctx context.Context, deviceID string, updateRequest *DeviceUpdateRequest) (*Device, *Response, error) {
+	if deviceID == "" {
+		return nil, nil, errors.New("failed to update device: id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, nil, errors.New("failed to update device: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
