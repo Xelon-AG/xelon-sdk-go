@@ -8,32 +8,33 @@ import (
 
 const loadBalancerBasePath = "loadBalancer"
 
-// LoadBalancersService handles communication with the load balancer related methods of the Xelon API.
-type LoadBalancersService service
+// LoadBalancersServiceV1 handles communication with the load balancer related methods of the Xelon API.
+// Deprecated.
+type LoadBalancersServiceV1 service
 
-// LoadBalancer represents a Xelon load balancer.
-type LoadBalancer struct {
-	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
-	Health          string                       `json:"health,omitempty"`
-	HealthCheck     LoadBalancerHealthCheck      `json:"health_check,omitempty"`
-	ID              int                          `json:"id,omitempty"`
-	InternalIP      string                       `json:"internalIp,omitempty"`
-	IP              string                       `json:"ip,omitempty"`
-	LocalID         string                       `json:"local_id,omitempty"`
-	Name            string                       `json:"name,omitempty"`
-	Type            int                          `json:"type,omitempty"`
+// LoadBalancerV1 represents a Xelon load balancer.
+type LoadBalancerV1 struct {
+	ForwardingRules []LoadBalancerForwardingRuleV1 `json:"forwarding_rules,omitempty"`
+	Health          string                         `json:"health,omitempty"`
+	HealthCheck     LoadBalancerHealthCheckV1      `json:"health_check,omitempty"`
+	ID              int                            `json:"id,omitempty"`
+	InternalIP      string                         `json:"internalIp,omitempty"`
+	IP              string                         `json:"ip,omitempty"`
+	LocalID         string                         `json:"local_id,omitempty"`
+	Name            string                         `json:"name,omitempty"`
+	Type            int                            `json:"type,omitempty"`
 }
 
-// LoadBalancerForwardingRule represents a Xelon load balancer forwarding rule.
-type LoadBalancerForwardingRule struct {
+// LoadBalancerForwardingRuleV1 represents a Xelon load balancer forwarding rule.
+type LoadBalancerForwardingRuleV1 struct {
 	ID    int      `json:"id,omitempty"`
 	IP    []string `json:"ip,omitempty"`
 	Ports []int    `json:"ports,omitempty"`
 	Type  string   `json:"type,omitempty"`
 }
 
-// LoadBalancerHealthCheck represents a Xelon load balancer health check.
-type LoadBalancerHealthCheck struct {
+// LoadBalancerHealthCheckV1 represents a Xelon load balancer health check.
+type LoadBalancerHealthCheckV1 struct {
 	BadThreshold  int    `json:"bad_threshold,omitempty"`
 	GoodThreshold int    `json:"good_threshold,omitempty"`
 	Interval      int    `json:"interval,omitempty"`
@@ -42,20 +43,20 @@ type LoadBalancerHealthCheck struct {
 	Timeout       int    `json:"timeout,omitempty"`
 }
 
-type LoadBalancerCreateRequest struct {
-	CloudID         string                       `json:"cloudId,omitempty"`
-	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
-	Name            string                       `json:"name,omitempty"`
-	ServerID        []string                     `json:"server_id,omitempty"`
-	Type            int                          `json:"type,omitempty"`
+type LoadBalancerCreateRequestV1 struct {
+	CloudID         string                         `json:"cloudId,omitempty"`
+	ForwardingRules []LoadBalancerForwardingRuleV1 `json:"forwarding_rules,omitempty"`
+	Name            string                         `json:"name,omitempty"`
+	ServerID        []string                       `json:"server_id,omitempty"`
+	Type            int                            `json:"type,omitempty"`
 }
 
-type LoadBalancerUpdateForwardingRulesRequest struct {
-	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
+type LoadBalancerUpdateForwardingRulesRequestV1 struct {
+	ForwardingRules []LoadBalancerForwardingRuleV1 `json:"forwarding_rules,omitempty"`
 }
 
 // List provides information about load balancers.
-func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]LoadBalancer, *Response, error) {
+func (s *LoadBalancersServiceV1) List(ctx context.Context, tenantID string) ([]LoadBalancerV1, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -66,7 +67,7 @@ func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]Loa
 		return nil, nil, err
 	}
 
-	var loadBalancers []LoadBalancer
+	var loadBalancers []LoadBalancerV1
 	resp, err := s.client.Do(ctx, req, &loadBalancers)
 	if err != nil {
 		return nil, resp, err
@@ -76,7 +77,7 @@ func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]Loa
 }
 
 // Get provides information about a load balancer identified by local id.
-func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string) (*LoadBalancer, *Response, error) {
+func (s *LoadBalancersServiceV1) Get(ctx context.Context, tenantID, localID string) (*LoadBalancerV1, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -87,7 +88,7 @@ func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string
 		return nil, nil, err
 	}
 
-	loadBalancer := new(LoadBalancer)
+	loadBalancer := new(LoadBalancerV1)
 	resp, err := s.client.Do(ctx, req, loadBalancer)
 	if err != nil {
 		return nil, resp, err
@@ -97,7 +98,7 @@ func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string
 }
 
 // Create makes a new load balancer with given payload.
-func (s *LoadBalancersService) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequest) (*APIResponse, *Response, error) {
+func (s *LoadBalancersServiceV1) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequestV1) (*APIResponse, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -121,7 +122,7 @@ func (s *LoadBalancersService) Create(ctx context.Context, tenantID string, crea
 }
 
 // Delete removes a load balancer.
-func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID string) (*Response, error) {
+func (s *LoadBalancersServiceV1) Delete(ctx context.Context, tenantID, localID string) (*Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, ErrEmptyArgument
 	}
@@ -135,7 +136,7 @@ func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID str
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *LoadBalancersService) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequest) (*APIResponse, *Response, error) {
+func (s *LoadBalancersServiceV1) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequestV1) (*APIResponse, *Response, error) {
 	if tenantID == "" || localID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
