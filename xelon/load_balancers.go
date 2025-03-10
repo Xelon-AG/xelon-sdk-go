@@ -26,7 +26,7 @@ type LoadBalancer struct {
 
 type LoadBalancerCreateRequest struct {
 	CloudID           string `json:"cloudIdentifier"`
-	InternalIPAddress string `json:"internalIp"`
+	InternalIPAddress string `json:"internalIp,omitempty"`
 	InternalNetworkID string `json:"internalNetworkIdentifier"`
 	Type              string `json:"loadBalancingType"` // layer4 or layer7
 	Name              string `json:"name"`
