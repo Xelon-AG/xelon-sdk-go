@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const loadBalancerBasePath = "loadBalancer"
+// const loadBalancerBasePathV1 = "loadBalancer"
 
 // LoadBalancersServiceV1 handles communication with the load balancer related methods of the Xelon API.
 // Deprecated.

@@ -40,7 +40,7 @@ type Client struct {
 	Devices              *DevicesService
 	Kubernetes           *KubernetesService
 	LoadBalancerClusters *LoadBalancerClustersService
-	LoadBalancers        *LoadBalancersServiceV1
+	LoadBalancers        *LoadBalancersService
 	Networks             *NetworksService
 	PersistentStorages   *PersistentStoragesServiceV1
 	SSHKeys              *SSHKeysService
@@ -137,7 +137,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.Devices = (*DevicesService)(&c.common)
 	c.Kubernetes = (*KubernetesService)(&c.common)
 	c.LoadBalancerClusters = (*LoadBalancerClustersService)(&c.common)
-	c.LoadBalancers = (*LoadBalancersServiceV1)(&c.common)
+	c.LoadBalancers = (*LoadBalancersService)(&c.common)
 	c.Networks = (*NetworksService)(&c.common)
 	c.PersistentStorages = (*PersistentStoragesServiceV1)(&c.common)
 	c.SSHKeys = (*SSHKeysService)(&c.common)
