@@ -15,13 +15,15 @@ type LoadBalancersService service
 
 // LoadBalancer represents a Xelon load balancer.
 type LoadBalancer struct {
-	Cloud        *Cloud     `json:"cloud,omitempty"`
-	CreatedAt    *time.Time `json:"createdAt,omitempty"`
-	ID           string     `json:"identifier,omitempty"`
-	HealthStatus string     `json:"health,omitempty"`
-	Name         string     `json:"name,omitempty"`
-	IPAddress    string     `json:"ip,omitempty"`
-	// Tenant       *Tenant    `json:"tenant,omitempty"` (fix remove prefix tenant in backend)
+	Cloud             *Cloud     `json:"cloud,omitempty"`
+	CreatedAt         *time.Time `json:"createdAt,omitempty"`
+	ExternalIPAddress string     `json:"externalIp,omitempty"`
+	ID                string     `json:"identifier,omitempty"`
+	InternalIPAddress string     `json:"internalIp,omitempty"`
+	HealthStatus      string     `json:"health,omitempty"`
+	Name              string     `json:"name,omitempty"`
+	State             int        `json:"state,omitempty"`
+	Tenant            *Tenant    `json:"tenant,omitempty"`
 }
 
 type LoadBalancerCreateRequest struct {
