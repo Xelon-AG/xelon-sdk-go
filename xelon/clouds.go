@@ -13,7 +13,7 @@ type CloudsService service
 type Cloud struct {
 	ID     string `json:"identifier,omitempty"`
 	Name   string `json:"name,omitempty"`
-	Type   int    `json:"type,omitempty"`
+	Type   string `json:"type,omitempty"`
 	HVType string `json:"hvType,omitempty"`
 }
 

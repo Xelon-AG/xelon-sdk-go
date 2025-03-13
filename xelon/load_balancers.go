@@ -15,7 +15,7 @@ type LoadBalancersService service
 
 // LoadBalancer represents a Xelon load balancer.
 type LoadBalancer struct {
-	// Cloud        *Cloud     `json:"cloud,omitempty"` (fix type int/string in backend)
+	Cloud        *Cloud     `json:"cloud,omitempty"`
 	CreatedAt    *time.Time `json:"createdAt,omitempty"`
 	ID           string     `json:"identifier,omitempty"`
 	HealthStatus string     `json:"health,omitempty"`
