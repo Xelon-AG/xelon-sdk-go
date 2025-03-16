@@ -15,15 +15,21 @@ type LoadBalancersService service
 
 // LoadBalancer represents a Xelon load balancer.
 type LoadBalancer struct {
-	Cloud             *Cloud     `json:"cloud,omitempty"`
-	CreatedAt         *time.Time `json:"createdAt,omitempty"`
-	ExternalIPAddress string     `json:"externalIp,omitempty"`
-	ID                string     `json:"identifier,omitempty"`
-	InternalIPAddress string     `json:"internalIp,omitempty"`
-	HealthStatus      string     `json:"health,omitempty"`
-	Name              string     `json:"name,omitempty"`
-	State             int        `json:"state,omitempty"`
-	Tenant            *Tenant    `json:"tenant,omitempty"`
+	AssignedDevices   []LoadBalancerAssignedDevice `json:"assignedDevices,omitempty"`
+	Cloud             *Cloud                       `json:"cloud,omitempty"`
+	CreatedAt         *time.Time                   `json:"createdAt,omitempty"`
+	ExternalIPAddress string                       `json:"externalIp,omitempty"`
+	ID                string                       `json:"identifier,omitempty"`
+	InternalIPAddress string                       `json:"internalIp,omitempty"`
+	HealthStatus      string                       `json:"health,omitempty"`
+	Name              string                       `json:"name,omitempty"`
+	State             int                          `json:"state,omitempty"`
+	Tenant            *Tenant                      `json:"tenant,omitempty"`
+}
+
+type LoadBalancerAssignedDevice struct {
+	ID   string `json:"identifier,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 type LoadBalancerCreateRequest struct {
@@ -39,6 +45,10 @@ type LoadBalancerUpdateRequest struct {
 	Name string `json:"name"`
 }
 
+type LoadBalancerUpdateAssignedDevicesRequest struct {
+	DeviceIDs []string `json:"deviceIdentifiers"`
+}
+
 // LoadBalancerListOptions specifies the optional parameters to the LoadBalancersService.List.
 type LoadBalancerListOptions struct {
 	Sort   string `url:"sort,omitempty"`
@@ -50,6 +60,10 @@ type LoadBalancerListOptions struct {
 type loadBalancerRoot struct {
 	LoadBalancer *LoadBalancer `json:"data,omitempty"`
 	Message      string        `json:"message,omitempty"`
+}
+
+type loadBalancerAssignedDevicesRoot struct {
+	AssignedDevices []LoadBalancerAssignedDevice `json:"data,omitempty"`
 }
 
 type loadBalancersRoot struct {
@@ -161,4 +175,47 @@ func (s *LoadBalancersService) Delete(ctx context.Context, loadBalancerID string
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+// ListAssignedDevices provides information about assigned device.
+func (s *LoadBalancersService) ListAssignedDevices(ctx context.Context, loadBalancerID, networkID string) ([]LoadBalancerAssignedDevice, *Response, error) {
+	if loadBalancerID == "" {
+		return nil, nil, errors.New("failed to list assigned devices for load balancer: id must be supplied")
+	}
+	if networkID == "" {
+		return nil, nil, errors.New("failed to list assigned devices for load balancer: network id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/assignable-devices/%v", loadBalancerBasePath, loadBalancerID, networkID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(loadBalancerAssignedDevicesRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.AssignedDevices, resp, nil
+}
+
+// UpdateAssignedDevices changes assigned devices.
+func (s *LoadBalancersService) UpdateAssignedDevices(ctx context.Context, loadBalancerID string, updateRequest *LoadBalancerUpdateAssignedDevicesRequest) (*Response, error) {
+	if loadBalancerID == "" {
+		return nil, errors.New("failed to update assigned devices for load balancer: id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, errors.New("failed to update assigned devices for load balancer: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/assigned-devices", loadBalancerBasePath, loadBalancerID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	root := new(loadBalancerRoot)
+	return s.client.Do(ctx, req, root)
 }
