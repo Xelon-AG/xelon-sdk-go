@@ -320,11 +320,11 @@ func (s *FirewallsService) UpdateForwardingRule(ctx context.Context, firewallID,
 }
 
 // DeleteForwardingRule removes a forwarding rule.
-func (s *FirewallsService) DeleteForwardingRule(ctx context.Context, firewallID string, forwardingRuleID int) (*Response, error) {
+func (s *FirewallsService) DeleteForwardingRule(ctx context.Context, firewallID, forwardingRuleID string) (*Response, error) {
 	if firewallID == "" {
 		return nil, errors.New("failed to delete forwarding rule: firewall id must be supplied")
 	}
-	if forwardingRuleID == 0 {
+	if forwardingRuleID == "" {
 		return nil, errors.New("failed to delete forwarding rule: forwarding rule id must be supplied")
 	}
 
