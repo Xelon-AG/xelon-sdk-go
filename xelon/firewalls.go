@@ -120,11 +120,13 @@ func (v *FirewallForwardingRule) UnmarshalJSON(data []byte) error {
 }
 
 type FirewallCreateRequest struct {
-	CloudID           string `json:"cloudIdentifier"`
-	InternalIPAddress string `json:"internalIp,omitempty"`
-	InternalNetworkID string `json:"internalNetworkIdentifier"`
-	Name              string `json:"name"`
-	TenantID          string `json:"tenantIdentifier"`
+	CloudID             string `json:"cloudIdentifier"`
+	ExternalIPAddressID string `json:"externalIpIdentifier,omitempty"`
+	ExternalNetworkID   string `json:"externalNetworkIdentifier,omitempty"`
+	InternalIPAddress   string `json:"internalIp,omitempty"`
+	InternalNetworkID   string `json:"internalNetworkIdentifier"`
+	Name                string `json:"name"`
+	TenantID            string `json:"tenantIdentifier"`
 }
 
 type FirewallUpdateRequest struct {
