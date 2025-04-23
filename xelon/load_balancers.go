@@ -268,11 +268,11 @@ func (s *LoadBalancersService) CreateForwardingRule(ctx context.Context, loadBal
 }
 
 // UpdateForwardingRule changes the configuration of a forwarding rule.
-func (s *LoadBalancersService) UpdateForwardingRule(ctx context.Context, loadBalancerID string, forwardingRuleID int, updateRequest *LoadBalancerUpdateForwardingRuleRequest) (*LoadBalancerForwardingRule, *Response, error) {
+func (s *LoadBalancersService) UpdateForwardingRule(ctx context.Context, loadBalancerID, forwardingRuleID string, updateRequest *LoadBalancerUpdateForwardingRuleRequest) (*LoadBalancerForwardingRule, *Response, error) {
 	if loadBalancerID == "" {
 		return nil, nil, errors.New("failed to update forwarding rule: load balancer id must be supplied")
 	}
-	if forwardingRuleID == 0 {
+	if forwardingRuleID == "" {
 		return nil, nil, errors.New("failed to update forwarding rule: forwarding rule id must be supplied")
 	}
 	if updateRequest == nil {
@@ -295,11 +295,11 @@ func (s *LoadBalancersService) UpdateForwardingRule(ctx context.Context, loadBal
 }
 
 // DeleteForwardingRule removes a forwarding rule.
-func (s *LoadBalancersService) DeleteForwardingRule(ctx context.Context, loadBalancerID string, forwardingRuleID int) (*Response, error) {
+func (s *LoadBalancersService) DeleteForwardingRule(ctx context.Context, loadBalancerID string, forwardingRuleID string) (*Response, error) {
 	if loadBalancerID == "" {
 		return nil, errors.New("failed to delete forwarding rule: load balancer id must be supplied")
 	}
-	if forwardingRuleID == 0 {
+	if forwardingRuleID == "" {
 		return nil, errors.New("failed to delete forwarding rule: forwarding rule id must be supplied")
 	}
 
