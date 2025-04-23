@@ -34,7 +34,7 @@ type LoadBalancerAssignedDevice struct {
 }
 
 type LoadBalancerForwardingRule struct {
-	ID          int      `json:"id,omitempty"`
+	ID          string   `json:"identifier,omitempty"`
 	IPAddresses []string `json:"ip,omitempty"`
 	Ports       []int    `json:"ports,omitempty"`
 }
