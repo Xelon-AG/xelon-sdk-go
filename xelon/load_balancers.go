@@ -40,13 +40,15 @@ type LoadBalancerForwardingRule struct {
 }
 
 type LoadBalancerCreateRequest struct {
-	AssignedDeviceIDs []string `json:"assignedDevicesIdentifiers,omitempty"`
-	CloudID           string   `json:"cloudIdentifier"`
-	InternalIPAddress string   `json:"internalIp,omitempty"`
-	InternalNetworkID string   `json:"internalNetworkIdentifier"`
-	Type              string   `json:"loadBalancingType"` // layer4 or layer7
-	Name              string   `json:"name"`
-	TenantID          string   `json:"tenantIdentifier"`
+	AssignedDeviceIDs   []string `json:"assignedDevicesIdentifiers,omitempty"`
+	CloudID             string   `json:"cloudIdentifier"`
+	ExternalIPAddressID string   `json:"externalIpIdentifier,omitempty"`
+	ExternalNetworkID   string   `json:"externalNetworkIdentifier,omitempty"`
+	InternalIPAddress   string   `json:"internalIp,omitempty"`
+	InternalNetworkID   string   `json:"internalNetworkIdentifier"`
+	Type                string   `json:"loadBalancingType"` // layer4 or layer7
+	Name                string   `json:"name"`
+	TenantID            string   `json:"tenantIdentifier"`
 }
 
 type LoadBalancerUpdateRequest struct {
