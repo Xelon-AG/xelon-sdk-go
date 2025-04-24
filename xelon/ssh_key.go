@@ -2,7 +2,6 @@ package xelon
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -123,9 +122,6 @@ func (s *SSHKeysService) Update(ctx context.Context, sshKeyID string, updateRequ
 	if updateRequest == nil {
 		return nil, nil, errors.New("failed to update ssh key: payload must be supplied")
 	}
-
-	bytes, _ := json.Marshal(updateRequest)
-	fmt.Println(string(bytes))
 
 	path := fmt.Sprintf("%v/%v", sshBasePath, sshKeyID)
 	req, err := s.client.NewRequest(http.MethodPatch, path, updateRequest)

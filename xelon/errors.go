@@ -1,7 +1,6 @@
 package xelon
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -18,54 +17,34 @@ type ErrorResponse struct {
 }
 
 type ErrorElement struct {
-	Code  int          `json:"code,omitempty"`
-	Error ErrorWrapper `json:"error,omitempty"`
-}
-
-// ErrorWrapper wraps a Error object with additional functionality.
-type ErrorWrapper struct {
-	Error
-	Partial bool `json:"-"`
-}
-
-// Error represents an error object in Xelon business logic. It can be a string
-// or array of validation messages.
-type Error struct {
-	Message     string `json:"-"`
-	Validations map[string]interface{}
+	Error       string         `json:"error,omitempty"`
+	Message     string         `json:"message,omitempty"`
+	Validations map[string]any `json:"errors,omitempty"`
 }
 
 func (e ErrorElement) String() string {
-	if e.Error.Partial {
-		return fmt.Sprintf("(code: %v, error: %v)", e.Code, e.Error.Message)
-	} else {
-		var v []string
-		for s, i := range e.Error.Validations {
-			v = append(v, fmt.Sprintf("%v - %v", s, i))
-		}
-		validations := strings.Join(v, ", ")
-		return fmt.Sprintf("(code: %v, validations: (%v))", e.Code, validations)
+	var elements []string
+
+	if e.Error != "" {
+		elements = append(elements, fmt.Sprintf("error: %v", e.Error))
 	}
+
+	if e.Message != "" {
+		elements = append(elements, fmt.Sprintf("details: %v", e.Message))
+	}
+
+	var validations []string
+	for k, v := range e.Validations {
+		validations = append(validations, fmt.Sprintf("%v - %v", k, v))
+	}
+	if len(validations) > 0 {
+		elements = append(elements, fmt.Sprintf("validations: (%v)", strings.Join(validations, ", ")))
+	}
+
+	return strings.Join(elements, ", ")
 }
 
 func (r *ErrorResponse) Error() string {
-	return fmt.Sprintf("%v %v: %d %+v",
+	return fmt.Sprintf("%v %v: %d (%+v)",
 		r.Response.Request.Method, sanitizeURL(r.Response.Request.URL), r.Response.StatusCode, r.ErrorElement)
-}
-
-func (w *ErrorWrapper) UnmarshalJSON(data []byte) error {
-	s := string(data)
-	if strings.HasPrefix(s, "{") {
-		var validations map[string]interface{}
-		err := json.Unmarshal(data, &validations)
-		if err != nil {
-			return err
-		}
-		w.Validations = validations
-		return nil
-	}
-	s = strings.Trim(s, "\"")
-	w.Message = s
-	w.Partial = true
-	return nil
 }

@@ -2,86 +2,131 @@ package xelon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"time"
 )
 
-const loadBalancerBasePath = "loadBalancer"
+const loadBalancerBasePath = "load-balancers"
 
-// LoadBalancersService handles communication with the load balancer related methods of the Xelon API.
+// LoadBalancersService handles communication with the load balancers related methods of the Xelon REST API.
 type LoadBalancersService service
 
 // LoadBalancer represents a Xelon load balancer.
 type LoadBalancer struct {
-	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
-	Health          string                       `json:"health,omitempty"`
-	HealthCheck     LoadBalancerHealthCheck      `json:"health_check,omitempty"`
-	ID              int                          `json:"id,omitempty"`
-	InternalIP      string                       `json:"internalIp,omitempty"`
-	IP              string                       `json:"ip,omitempty"`
-	LocalID         string                       `json:"local_id,omitempty"`
-	Name            string                       `json:"name,omitempty"`
-	Type            int                          `json:"type,omitempty"`
+	AssignedDevices   []LoadBalancerAssignedDevice `json:"assignedDevices,omitempty"`
+	Cloud             *Cloud                       `json:"cloud,omitempty"`
+	CreatedAt         *time.Time                   `json:"createdAt,omitempty"`
+	ExternalIPAddress string                       `json:"externalIp,omitempty"`
+	ForwardingRules   []LoadBalancerForwardingRule `json:"forwardingRules,omitempty"`
+	HealthStatus      string                       `json:"health,omitempty"`
+	ID                string                       `json:"identifier,omitempty"`
+	InternalIPAddress string                       `json:"internalIp,omitempty"`
+	Name              string                       `json:"name,omitempty"`
+	State             int                          `json:"state,omitempty"`
+	Tenant            *Tenant                      `json:"tenant,omitempty"`
 }
 
-// LoadBalancerForwardingRule represents a Xelon load balancer forwarding rule.
+type LoadBalancerAssignedDevice struct {
+	ID   string `json:"identifier,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
 type LoadBalancerForwardingRule struct {
-	ID    int      `json:"id,omitempty"`
-	IP    []string `json:"ip,omitempty"`
-	Ports []int    `json:"ports,omitempty"`
-	Type  string   `json:"type,omitempty"`
-}
-
-// LoadBalancerHealthCheck represents a Xelon load balancer health check.
-type LoadBalancerHealthCheck struct {
-	BadThreshold  int    `json:"bad_threshold,omitempty"`
-	GoodThreshold int    `json:"good_threshold,omitempty"`
-	Interval      int    `json:"interval,omitempty"`
-	Path          string `json:"path,omitempty"`
-	Port          int    `json:"port,omitempty"`
-	Timeout       int    `json:"timeout,omitempty"`
+	ID          string   `json:"identifier,omitempty"`
+	IPAddresses []string `json:"ip,omitempty"`
+	Ports       []int    `json:"ports,omitempty"`
 }
 
 type LoadBalancerCreateRequest struct {
-	CloudID         string                       `json:"cloudId,omitempty"`
-	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
-	Name            string                       `json:"name,omitempty"`
-	ServerID        []string                     `json:"server_id,omitempty"`
-	Type            int                          `json:"type,omitempty"`
+	AssignedDeviceIDs   []string `json:"assignedDevicesIdentifiers,omitempty"`
+	CloudID             string   `json:"cloudIdentifier"`
+	ExternalIPAddressID string   `json:"externalIpIdentifier,omitempty"`
+	ExternalNetworkID   string   `json:"externalNetworkIdentifier,omitempty"`
+	InternalIPAddress   string   `json:"internalIp,omitempty"`
+	InternalNetworkID   string   `json:"internalNetworkIdentifier"`
+	Type                string   `json:"loadBalancingType"` // layer4 or layer7
+	Name                string   `json:"name"`
+	TenantID            string   `json:"tenantIdentifier"`
 }
 
-type LoadBalancerUpdateForwardingRulesRequest struct {
-	ForwardingRules []LoadBalancerForwardingRule `json:"forwarding_rules,omitempty"`
+type LoadBalancerUpdateRequest struct {
+	Name string `json:"name"`
 }
 
-// List provides information about load balancers.
-func (s *LoadBalancersService) List(ctx context.Context, tenantID string) ([]LoadBalancer, *Response, error) {
-	if tenantID == "" {
-		return nil, nil, ErrEmptyArgument
+type LoadBalancerUpdateAssignedDevicesRequest struct {
+	DeviceIDs []string `json:"deviceIdentifiers"`
+}
+
+type LoadBalancerCreateForwardingRuleRequest struct {
+	LoadBalancerForwardingRule
+}
+
+type LoadBalancerUpdateForwardingRuleRequest struct {
+	LoadBalancerForwardingRule
+}
+
+// LoadBalancerListOptions specifies the optional parameters to the LoadBalancersService.List.
+type LoadBalancerListOptions struct {
+	Sort   string `url:"sort,omitempty"`
+	Search string `url:"search,omitempty"`
+
+	ListOptions
+}
+
+type loadBalancerRoot struct {
+	LoadBalancer *LoadBalancer `json:"data,omitempty"`
+	Message      string        `json:"message,omitempty"`
+}
+
+type loadBalancerAssignedDevicesRoot struct {
+	AssignedDevices []LoadBalancerAssignedDevice `json:"data,omitempty"`
+}
+
+type loadBalancerForwardingRuleRoot struct {
+	ForwardingRule *LoadBalancerForwardingRule `json:"data,omitempty"`
+	Message        string                      `json:"message,omitempty"`
+}
+
+type loadBalancersRoot struct {
+	LoadBalancers []LoadBalancer `json:"data"`
+	Meta          *Meta          `json:"meta,omitempty"`
+}
+
+func (v LoadBalancer) String() string { return Stringify(v) }
+
+// List provides a list of all load balancers.
+func (s *LoadBalancersService) List(ctx context.Context, opts *LoadBalancerListOptions) ([]LoadBalancer, *Response, error) {
+	path, err := addOptions(loadBalancerBasePath, opts)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	path := fmt.Sprintf("%v/%v", tenantID, loadBalancerBasePath)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var loadBalancers []LoadBalancer
-	resp, err := s.client.Do(ctx, req, &loadBalancers)
+	root := new(loadBalancersRoot)
+	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return loadBalancers, resp, nil
-}
-
-// Get provides information about a load balancer identified by local id.
-func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string) (*LoadBalancer, *Response, error) {
-	if tenantID == "" || localID == "" {
-		return nil, nil, ErrEmptyArgument
+	if m := root.Meta; m != nil {
+		resp.Meta = m
 	}
 
-	path := fmt.Sprintf("%v/%v/%v", tenantID, loadBalancerBasePath, localID)
+	return root.LoadBalancers, resp, nil
+}
+
+// Get provides detailed information for load balancer identified by id.
+func (s *LoadBalancersService) Get(ctx context.Context, loadBalancerID string) (*LoadBalancer, *Response, error) {
+	if loadBalancerID == "" {
+		return nil, nil, errors.New("failed to get load balancer: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v", loadBalancerBasePath, loadBalancerID)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -93,40 +138,60 @@ func (s *LoadBalancersService) Get(ctx context.Context, tenantID, localID string
 		return nil, resp, err
 	}
 
-	return loadBalancer, resp, nil
+	return loadBalancer, resp, err
 }
 
-// Create makes a new load balancer with given payload.
-func (s *LoadBalancersService) Create(ctx context.Context, tenantID string, createRequest *LoadBalancerCreateRequest) (*APIResponse, *Response, error) {
-	if tenantID == "" {
-		return nil, nil, ErrEmptyArgument
-	}
+// Create makes a load balancer with given payload.
+func (s *LoadBalancersService) Create(ctx context.Context, createRequest *LoadBalancerCreateRequest) (*LoadBalancer, *Response, error) {
 	if createRequest == nil {
-		return nil, nil, ErrEmptyPayloadNotAllowed
+		return nil, nil, errors.New("failed to create load balancer: payload must be supplied")
 	}
 
-	path := fmt.Sprintf("%v/%v", tenantID, loadBalancerBasePath)
-	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
+	req, err := s.client.NewRequest(http.MethodPost, loadBalancerBasePath, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	apiResponse := new(APIResponse)
-	resp, err := s.client.Do(ctx, req, apiResponse)
+	loadBalancerRoot := new(loadBalancerRoot)
+	resp, err := s.client.Do(ctx, req, loadBalancerRoot)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return apiResponse, resp, nil
+	return loadBalancerRoot.LoadBalancer, resp, nil
 }
 
-// Delete removes a load balancer.
-func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID string) (*Response, error) {
-	if tenantID == "" || localID == "" {
-		return nil, ErrEmptyArgument
+// Update changes load balancer identified by id.
+func (s *LoadBalancersService) Update(ctx context.Context, loadBalancerID string, updateRequest *LoadBalancerUpdateRequest) (*LoadBalancer, *Response, error) {
+	if loadBalancerID == "" {
+		return nil, nil, errors.New("failed to update load balancer: id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, nil, errors.New("failed to update load balancer: payload must be supplied")
 	}
 
-	path := fmt.Sprintf("%v/%v/%v", tenantID, loadBalancerBasePath, localID)
+	path := fmt.Sprintf("%v/%v", loadBalancerBasePath, loadBalancerID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	loadBalancerRoot := new(loadBalancerRoot)
+	resp, err := s.client.Do(ctx, req, loadBalancerRoot)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return loadBalancerRoot.LoadBalancer, resp, nil
+}
+
+// Delete removes load balancer identified by id.
+func (s *LoadBalancersService) Delete(ctx context.Context, loadBalancerID string) (*Response, error) {
+	if loadBalancerID == "" {
+		return nil, errors.New("failed to delete load balancer: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v", loadBalancerBasePath, loadBalancerID)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
@@ -135,25 +200,114 @@ func (s *LoadBalancersService) Delete(ctx context.Context, tenantID, localID str
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *LoadBalancersService) UpdateForwardingRules(ctx context.Context, tenantID, localID string, updateRequest *LoadBalancerUpdateForwardingRulesRequest) (*APIResponse, *Response, error) {
-	if tenantID == "" || localID == "" {
-		return nil, nil, ErrEmptyArgument
+// ListAssignedDevices provides information about assigned device.
+func (s *LoadBalancersService) ListAssignedDevices(ctx context.Context, loadBalancerID, networkID string) ([]LoadBalancerAssignedDevice, *Response, error) {
+	if loadBalancerID == "" {
+		return nil, nil, errors.New("failed to list assigned devices: load balancer id must be supplied")
 	}
-	if updateRequest == nil {
-		return nil, nil, ErrEmptyPayloadNotAllowed
+	if networkID == "" {
+		return nil, nil, errors.New("failed to list assigned devices: network id must be supplied")
 	}
 
-	path := fmt.Sprintf("%v/%v/%v/forwardingRules", tenantID, loadBalancerBasePath, localID)
+	path := fmt.Sprintf("%v/%v/assignable-devices/%v", loadBalancerBasePath, loadBalancerID, networkID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(loadBalancerAssignedDevicesRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.AssignedDevices, resp, nil
+}
+
+// UpdateAssignedDevices changes assigned devices.
+func (s *LoadBalancersService) UpdateAssignedDevices(ctx context.Context, loadBalancerID string, updateRequest *LoadBalancerUpdateAssignedDevicesRequest) (*Response, error) {
+	if loadBalancerID == "" {
+		return nil, errors.New("failed to update assigned devices: load balancer id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, errors.New("failed to update assigned devices: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/assigned-devices", loadBalancerBasePath, loadBalancerID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	root := new(loadBalancerRoot)
+	return s.client.Do(ctx, req, root)
+}
+
+// CreateForwardingRule makes a new forwarding rule.
+func (s *LoadBalancersService) CreateForwardingRule(ctx context.Context, loadBalancerID string, createRequest *LoadBalancerCreateForwardingRuleRequest) (*LoadBalancerForwardingRule, *Response, error) {
+	if loadBalancerID == "" {
+		return nil, nil, errors.New("failed to create forwarding rule: load balancer id must be supplied")
+	}
+	if createRequest == nil {
+		return nil, nil, errors.New("failed to create forwarding rule: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/rules", loadBalancerBasePath, loadBalancerID)
+	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	loadBalancerForwardingRuleRoot := new(loadBalancerForwardingRuleRoot)
+	resp, err := s.client.Do(ctx, req, loadBalancerForwardingRuleRoot)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return loadBalancerForwardingRuleRoot.ForwardingRule, resp, nil
+}
+
+// UpdateForwardingRule changes the configuration of a forwarding rule.
+func (s *LoadBalancersService) UpdateForwardingRule(ctx context.Context, loadBalancerID, forwardingRuleID string, updateRequest *LoadBalancerUpdateForwardingRuleRequest) (*LoadBalancerForwardingRule, *Response, error) {
+	if loadBalancerID == "" {
+		return nil, nil, errors.New("failed to update forwarding rule: load balancer id must be supplied")
+	}
+	if forwardingRuleID == "" {
+		return nil, nil, errors.New("failed to update forwarding rule: forwarding rule id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, nil, errors.New("failed to update forwarding rule: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/rules/%v", loadBalancerBasePath, loadBalancerID, forwardingRuleID)
 	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	apiResponse := new(APIResponse)
-	resp, err := s.client.Do(ctx, req, apiResponse)
+	loadBalancerForwardingRuleRoot := new(loadBalancerForwardingRuleRoot)
+	resp, err := s.client.Do(ctx, req, loadBalancerForwardingRuleRoot)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return apiResponse, resp, nil
+	return loadBalancerForwardingRuleRoot.ForwardingRule, resp, nil
+}
+
+// DeleteForwardingRule removes a forwarding rule.
+func (s *LoadBalancersService) DeleteForwardingRule(ctx context.Context, loadBalancerID string, forwardingRuleID string) (*Response, error) {
+	if loadBalancerID == "" {
+		return nil, errors.New("failed to delete forwarding rule: load balancer id must be supplied")
+	}
+	if forwardingRuleID == "" {
+		return nil, errors.New("failed to delete forwarding rule: forwarding rule id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/rules/%v", loadBalancerBasePath, loadBalancerID, forwardingRuleID)
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }

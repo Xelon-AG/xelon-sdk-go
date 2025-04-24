@@ -6,13 +6,13 @@ import (
 	"net/http"
 )
 
-const networkBasePath = "networks"
+const networkBasePathV1 = "networks"
 
 // NetworksServiceV1 handles communication with the network related methods of the Xelon API.
 // Deprecated.
 type NetworksServiceV1 service
 
-type Network struct {
+type NetworkV1 struct {
 	ID      int    `json:"id,omitempty"`
 	Name    string `json:"name,omitempty"`
 	Network string `json:"network,omitempty"`
@@ -20,7 +20,7 @@ type Network struct {
 	Type    string `json:"type,omitempty"`
 }
 
-type NetworkDetails struct {
+type NetworkV1Details struct {
 	Broadcast      string `json:"broadcast,omitempty"`
 	DefaultGateway string `json:"defgw,omitempty"`
 	DNSPrimary     string `json:"dns1,omitempty"`
@@ -68,7 +68,7 @@ type NICIP struct {
 //
 // IPAddresses is optional, can either be single "10.0.0.1" or multiple
 // "10.0.0.1-10.0.0.254" entries.
-type NetworkLANCreateRequest struct {
+type NetworkLANCreateRequestV1 struct {
 	CloudID      int    `json:"cloudId"`
 	DisplayName  string `json:"displayname"`
 	DNSPrimary   string `json:"dns1"`
@@ -78,7 +78,7 @@ type NetworkLANCreateRequest struct {
 	IPAddresses  string `json:"ip_addresses,omitempty"`
 }
 
-// NetworkUpdateRequest represents a request to update a network.
+// NetworkV1UpdateRequest represents a request to update a network.
 //
 // Following fields are mandatory:
 //   - NetworkDetails.DefaultGateway
@@ -86,8 +86,8 @@ type NetworkLANCreateRequest struct {
 //   - NetworkDetails.DNSSecondary
 //   - NetworkDetails.Name
 //   - NetworkDetails.Network
-type NetworkUpdateRequest struct {
-	*NetworkDetails
+type NetworkV1UpdateRequest struct {
+	*NetworkV1Details
 }
 
 type NetworkAddIPRequest struct {
@@ -95,29 +95,29 @@ type NetworkAddIPRequest struct {
 }
 
 type NetworkInfo struct {
-	CloudID int             `json:"hvSystemId,omitempty"`
-	Details *NetworkDetails `json:"localnetid,omitempty"`
-	IPs     []IP            `json:"getiplist,omitempty"`
+	CloudID int               `json:"hvSystemId,omitempty"`
+	Details *NetworkV1Details `json:"localnetid,omitempty"`
+	IPs     []IP              `json:"getiplist,omitempty"`
 }
 
-type networkRoot struct {
-	Networks []Network `json:"networks,omitempty"`
+type networkRootV1 struct {
+	Networks []NetworkV1 `json:"networks,omitempty"`
 }
 
 // List provides a list of all networks.
-func (s *NetworksServiceV1) List(ctx context.Context, tenantID string) ([]Network, *Response, error) {
+func (s *NetworksServiceV1) List(ctx context.Context, tenantID string) ([]NetworkV1, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v", tenantID, networkBasePath)
+	path := fmt.Sprintf("%v/%v", tenantID, networkBasePathV1)
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	networkRoot := new(networkRoot)
+	networkRoot := new(networkRootV1)
 	resp, err := s.client.Do(ctx, req, networkRoot)
 	if err != nil {
 		return nil, resp, err
@@ -132,7 +132,7 @@ func (s *NetworksServiceV1) Get(ctx context.Context, tenantID string, networkID 
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/%v/show", tenantID, networkBasePath, networkID)
+	path := fmt.Sprintf("%v/%v/%v/show", tenantID, networkBasePathV1, networkID)
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
@@ -157,7 +157,7 @@ func (s *NetworksServiceV1) CreateLAN(ctx context.Context, tenantID string, crea
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
 
-	path := fmt.Sprintf("%v/%v/addlan", tenantID, networkBasePath)
+	path := fmt.Sprintf("%v/%v/addlan", tenantID, networkBasePathV1)
 
 	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
 	if err != nil {
@@ -174,12 +174,12 @@ func (s *NetworksServiceV1) CreateLAN(ctx context.Context, tenantID string, crea
 }
 
 // Update changes the configuration of a network.
-func (s *NetworksServiceV1) Update(ctx context.Context, networkID int, updateRequest *NetworkUpdateRequest) (*APIResponse, *Response, error) {
+func (s *NetworksServiceV1) Update(ctx context.Context, networkID int, updateRequest *NetworkV1UpdateRequest) (*APIResponse, *Response, error) {
 	if updateRequest == nil {
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
 
-	path := fmt.Sprintf("%v/%v/update", networkBasePath, networkID)
+	path := fmt.Sprintf("%v/%v/update", networkBasePathV1, networkID)
 
 	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
 	if err != nil {
@@ -197,7 +197,7 @@ func (s *NetworksServiceV1) Update(ctx context.Context, networkID int, updateReq
 
 // Delete removes a network identified by id.
 func (s *NetworksServiceV1) Delete(ctx context.Context, networkID int) (*Response, error) {
-	path := fmt.Sprintf("%v/%v/destroy", networkBasePath, networkID)
+	path := fmt.Sprintf("%v/%v/destroy", networkBasePathV1, networkID)
 
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
@@ -213,7 +213,7 @@ func (s *NetworksServiceV1) AddIPAddress(ctx context.Context, networkID int, add
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
 
-	path := fmt.Sprintf("%v/%v/addIp", networkBasePath, networkID)
+	path := fmt.Sprintf("%v/%v/addIp", networkBasePathV1, networkID)
 
 	req, err := s.client.NewRequest(http.MethodPost, path, addIPRequest)
 	if err != nil {
@@ -231,7 +231,7 @@ func (s *NetworksServiceV1) AddIPAddress(ctx context.Context, networkID int, add
 
 // DeleteIPAddress removes an IP from the specific network.
 func (s *NetworksServiceV1) DeleteIPAddress(ctx context.Context, networkID, ipAddressID int) (*Response, error) {
-	path := fmt.Sprintf("%v/%v/deleteIp?ipid=%v", networkBasePath, networkID, ipAddressID)
+	path := fmt.Sprintf("%v/%v/deleteIp?ipid=%v", networkBasePathV1, networkID, ipAddressID)
 
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {

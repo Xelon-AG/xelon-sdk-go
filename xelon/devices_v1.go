@@ -6,17 +6,17 @@ import (
 	"net/http"
 )
 
-const devicesBasePath = "vmlist"
+const devicesBasePathV1 = "vmlist"
 
 // DevicesServiceV1 handles communication with the devices related methods of the Xelon API.
 // Deprecated.
 type DevicesServiceV1 service
 
-// Device represents a Xelon device.
-type Device struct {
+// DeviceV1 represents a Xelon device.
+type DeviceV1 struct {
 	CPU            int                   `json:"cpu"`
 	LocalVMDetails *DeviceLocalVMDetails `json:"localvmdetails,omitempty"`
-	Networks       []DeviceNetwork       `json:"networks,omitempty"`
+	Networks       []DeviceNetworkV1     `json:"networks,omitempty"`
 	PowerState     bool                  `json:"powerstate"`
 	RAM            int                   `json:"ram"`
 }
@@ -37,8 +37,8 @@ type DeviceLocalVMDetails struct {
 	VMHostname    string `json:"vmhostname,omitempty"`
 }
 
-// DeviceNetwork represents a Xelon device's network information.
-type DeviceNetwork struct {
+// DeviceNetworkV1 represents a Xelon device's network information.
+type DeviceNetworkV1 struct {
 	IPAddress  string `json:"ip,omitempty"`
 	Label      string `json:"label,omitempty"`
 	MacAddress string `json:"macAddress,omitempty"`
@@ -50,7 +50,7 @@ type ToolsStatus struct {
 	ToolsStatus   bool   `json:"toolsStatus,omitempty"`
 }
 
-type DeviceCreateRequest struct {
+type DeviceCreateRequestV1 struct {
 	CloudID              int    `json:"cloudId"`
 	CPUCores             int    `json:"cpucores"`
 	DiskSize             int    `json:"disksize"`
@@ -80,7 +80,7 @@ type DeviceCreateResponse struct {
 	IPs            []string              `json:"ips,omitempty"`
 }
 
-type DeviceListOptions struct {
+type DeviceListOptionsV1 struct {
 	ListOptions
 }
 
@@ -154,7 +154,7 @@ func (s *DevicesServiceV1) Create(ctx context.Context, createRequest *DeviceCrea
 		return nil, nil, ErrEmptyPayloadNotAllowed
 	}
 
-	path := fmt.Sprintf("%v/create", devicesBasePath)
+	path := fmt.Sprintf("%v/create", devicesBasePathV1)
 
 	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
 	if err != nil {
@@ -176,7 +176,7 @@ func (s *DevicesServiceV1) Delete(ctx context.Context, localVMID string) (*Respo
 		return nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v", devicesBasePath, localVMID)
+	path := fmt.Sprintf("%v/%v", devicesBasePathV1, localVMID)
 
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
@@ -192,7 +192,7 @@ func (s *DevicesServiceV1) Start(ctx context.Context, localVMID string) (*Respon
 		return nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/startserver", devicesBasePath, localVMID)
+	path := fmt.Sprintf("%v/%v/startserver", devicesBasePathV1, localVMID)
 
 	req, err := s.client.NewRequest(http.MethodPost, path, nil)
 	if err != nil {
@@ -208,7 +208,7 @@ func (s *DevicesServiceV1) Stop(ctx context.Context, localVMID string) (*Respons
 		return nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/stopserver", devicesBasePath, localVMID)
+	path := fmt.Sprintf("%v/%v/stopserver", devicesBasePathV1, localVMID)
 
 	req, err := s.client.NewRequest(http.MethodPost, path, nil)
 	if err != nil {
@@ -228,7 +228,7 @@ func (s *DevicesServiceV1) GetDeviceCreationInfo(ctx context.Context, tenantID, 
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/create/%v/%v/%v", tenantID, devicesBasePath, deviceCategory, deviceType, templateID)
+	path := fmt.Sprintf("%v/%v/create/%v/%v/%v", tenantID, devicesBasePathV1, deviceCategory, deviceType, templateID)
 
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {

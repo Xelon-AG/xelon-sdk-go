@@ -36,16 +36,17 @@ type Client struct {
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
-	Clouds               *CloudsServiceV1
-	Devices              *DevicesServiceV1
+	Clouds               *CloudsService
+	Devices              *DevicesService
+	Firewalls            *FirewallsService
 	Kubernetes           *KubernetesService
 	LoadBalancerClusters *LoadBalancerClustersService
 	LoadBalancers        *LoadBalancersService
-	Networks             *NetworksServiceV1
+	Networks             *NetworksService
 	PersistentStorages   *PersistentStoragesServiceV1
 	SSHKeys              *SSHKeysService
 	Templates            *TemplatesServiceV1
-	Tenants              *TenantsServiceV1
+	Tenants              *TenantsService
 }
 
 type service struct {
@@ -133,16 +134,17 @@ func NewClient(token string, opts ...ClientOption) *Client {
 
 	c.common.client = c
 
-	c.Clouds = (*CloudsServiceV1)(&c.common)
-	c.Devices = (*DevicesServiceV1)(&c.common)
+	c.Clouds = (*CloudsService)(&c.common)
+	c.Devices = (*DevicesService)(&c.common)
+	c.Firewalls = (*FirewallsService)(&c.common)
 	c.Kubernetes = (*KubernetesService)(&c.common)
 	c.LoadBalancerClusters = (*LoadBalancerClustersService)(&c.common)
 	c.LoadBalancers = (*LoadBalancersService)(&c.common)
-	c.Networks = (*NetworksServiceV1)(&c.common)
+	c.Networks = (*NetworksService)(&c.common)
 	c.PersistentStorages = (*PersistentStoragesServiceV1)(&c.common)
 	c.SSHKeys = (*SSHKeysService)(&c.common)
 	c.Templates = (*TemplatesServiceV1)(&c.common)
-	c.Tenants = (*TenantsServiceV1)(&c.common)
+	c.Tenants = (*TenantsService)(&c.common)
 
 	// Notify user if no ClientID is set
 	if c.clientID == "" {

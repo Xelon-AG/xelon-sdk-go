@@ -8,16 +8,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTenant_Get(t *testing.T) {
+func TestTenant_GetCurrent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	mux.HandleFunc("/tenant/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/tenants/current", func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
-		_, _ = fmt.Fprint(w, `{"tenant_identifier":"long-id"}`)
+		_, _ = fmt.Fprint(w, `{"identifier":"long-id"}`)
 	})
 	expected := &Tenant{
-		TenantID: "long-id",
+		ID: "long-id",
 	}
 
 	tenant, _, err := client.Tenants.GetCurrent(ctx)
