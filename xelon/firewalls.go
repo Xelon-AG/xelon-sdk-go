@@ -97,7 +97,11 @@ func (v *FirewallForwardingRule) UnmarshalJSON(data []byte) error {
 	case []any:
 		var ipAddresses []string
 		for _, ipAddress := range val {
-			ipAddresses = append(ipAddresses, ipAddress.(string))
+			if str, ok := ipAddress.(string); ok {
+				ipAddresses = append(ipAddresses, str)
+			} else {
+				return fmt.Errorf("expected string IP address in DestinationIPAddresses, got %T", ipAddress)
+			}
 		}
 		v.DestinationIPAddress = ""
 		v.DestinationIPAddresses = ipAddresses
@@ -110,7 +114,11 @@ func (v *FirewallForwardingRule) UnmarshalJSON(data []byte) error {
 	case []any:
 		var ipAddresses []string
 		for _, ipAddress := range val {
-			ipAddresses = append(ipAddresses, ipAddress.(string))
+			if str, ok := ipAddress.(string); ok {
+				ipAddresses = append(ipAddresses, str)
+			} else {
+				return fmt.Errorf("expected string IP address in SourceIPAddresses, got %T", ipAddress)
+			}
 		}
 		v.SourceIPAddress = ""
 		v.SourceIPAddresses = ipAddresses
