@@ -61,6 +61,18 @@ type DeviceUpdateHardwareRequest struct {
 	RAM      int `json:"ram"`
 }
 
+type DeviceAddDiskRequest struct {
+	Size  int  `json:"size"`
+	IsHDD bool `json:"isHdd,omitempty"`
+}
+
+type DeviceUpdateDiskRequest struct {
+	DiskID          string `json:"diskId"`
+	Size            int    `json:"size"`
+	ExtendPartition bool   `json:"extendPartition"`
+	CreateSnapshot  bool   `json:"createSnapshot,omitempty"`
+}
+
 // DeviceListOptions specifies the optional parameters to the DevicesService.List.
 type DeviceListOptions struct {
 	Sort   string `url:"sort,omitempty"`
@@ -232,6 +244,42 @@ func (s *DevicesService) Stop(ctx context.Context, deviceID string) (*Response, 
 
 	path := fmt.Sprintf("%v/%v/stop", deviceBasePath, deviceID)
 	req, err := s.client.NewRequest(http.MethodPost, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// AddDisk adds a new disk to the device identified by id.
+func (s *DevicesService) AddDisk(ctx context.Context, deviceID string, addRequest *DeviceAddDiskRequest) (*Response, error) {
+	if deviceID == "" {
+		return nil, errors.New("failed to add disk: device id must be supplied")
+	}
+	if addRequest == nil {
+		return nil, errors.New("failed to add disk: request must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/disk", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodPost, path, addRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// UpdateDisk updates an existing disk on the device identified by id.
+func (s *DevicesService) UpdateDisk(ctx context.Context, deviceID string, updateRequest *DeviceUpdateDiskRequest) (*Response, error) {
+	if deviceID == "" {
+		return nil, errors.New("failed to update disk: device id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, errors.New("failed to update disk: request must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/disk", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
 	if err != nil {
 		return nil, err
 	}
