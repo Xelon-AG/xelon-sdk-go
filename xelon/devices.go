@@ -73,6 +73,11 @@ type DeviceUpdateDiskRequest struct {
 	CreateSnapshot  bool   `json:"createSnapshot,omitempty"`
 }
 
+type DeviceDeleteDiskRequest struct {
+	DiskID   string `json:"diskId"`
+	Password string `json:"password,omitempty"`
+}
+
 // DeviceListOptions specifies the optional parameters to the DevicesService.List.
 type DeviceListOptions struct {
 	Sort   string `url:"sort,omitempty"`
@@ -280,6 +285,24 @@ func (s *DevicesService) UpdateDisk(ctx context.Context, deviceID string, update
 
 	path := fmt.Sprintf("%v/%v/disk", deviceBasePath, deviceID)
 	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// DeleteDisk deletes a disk from the device identified by id.
+func (s *DevicesService) DeleteDisk(ctx context.Context, deviceID string, deleteRequest *DeviceDeleteDiskRequest) (*Response, error) {
+	if deviceID == "" {
+		return nil, errors.New("failed to delete disk: device id must be supplied")
+	}
+	if deleteRequest == nil {
+		return nil, errors.New("failed to delete disk: request must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/disk", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodDelete, path, deleteRequest)
 	if err != nil {
 		return nil, err
 	}
