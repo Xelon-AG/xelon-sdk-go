@@ -14,16 +14,36 @@ type DevicesService service
 
 // Device represents a Xelon device (virtual machine).
 type Device struct {
-	CPUCores          int    `json:"cpu,omitempty"`
-	DisplayName       string `json:"displayName,omitempty"`
-	HostName          string `json:"hostName,omitempty"`
-	ID                string `json:"identifier,omitempty"`
-	MonitoringEnabled bool   `json:"monitoring,omitempty"`
-	PoweredOn         bool   `json:"isPoweredOn,omitempty"`
-	RAM               int    `json:"ram,omitempty"`
-	State             int    `json:"state,omitempty"`
-	TemplateID        string `json:"templateId,omitempty"`
-	TenantID          string `json:"tenantIdentifier,omitempty"`
+	CPUCores          int               `json:"cpu,omitempty"`
+	DiskSize          int               `json:"diskSize,omitempty"`
+	DisplayName       string            `json:"displayName,omitempty"`
+	HostName          string            `json:"hostName,omitempty"`
+	ID                string            `json:"identifier,omitempty"`
+	MonitoringEnabled bool              `json:"monitoring,omitempty"`
+	PoweredOn         bool              `json:"isPoweredOn,omitempty"`
+	RAM               int               `json:"ram,omitempty"`
+	State             int               `json:"state,omitempty"`
+	Storages          []DeviceStorage   `json:"storages,omitempty"`
+	SwapDiskSize      int               `json:"swapDiskSize,omitempty"`
+	Template          *DeviceTemplate   `json:"template,omitempty"`
+	Tenant            *DeviceTenant     `json:"tenant,omitempty"`
+}
+
+type DeviceStorage struct {
+	ID         string `json:"id,omitempty"`
+	Name       string `json:"name,omitempty"`
+	Size       int    `json:"size,omitempty"`
+	Type       string `json:"type,omitempty"`
+	UnitNumber int    `json:"unitNumber,omitempty"`
+}
+
+type DeviceTenant struct {
+	ID   string `json:"identifier,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+type DeviceTemplate struct {
+	ID string `json:"identifier,omitempty"`
 }
 
 type DeviceCreateRequest struct {
