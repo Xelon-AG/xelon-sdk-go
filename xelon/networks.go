@@ -58,6 +58,17 @@ type NetworkLANUpdateRequest struct {
 	NetworkSpeed int    `json:"networkSpeedValue"`
 }
 
+type NetworkShareRequest struct {
+	CloudID    string   `json:"cloudIdentifier"`
+	NetworkIDs []string `json:"networks"`
+	TenantID   string   `json:"tenantIdentifier"`
+}
+
+type networkUnshareRequest struct {
+	NetworkID string `json:"networkIdentifier"`
+	TenantID  string `json:"tenantIdentifier"`
+}
+
 type NetworkWANCreateRequest struct {
 	CloudID            string `json:"cloudIdentifier"`
 	CloudForStretching string `json:"cloudForStretching,omitempty"`
@@ -118,6 +129,30 @@ func (s *NetworksService) List(ctx context.Context, opts *NetworkListOptions) ([
 	}
 
 	return root.Networks, resp, nil
+}
+
+// ListShared provides a list of all shared networks.
+func (s *NetworksService) ListShared(ctx context.Context, cloudID, tenantID string) ([]Network, *Response, error) {
+	if cloudID == "" {
+		return nil, nil, errors.New("failed to list shared networks: cloud id must be supplied")
+	}
+	if tenantID == "" {
+		return nil, nil, errors.New("failed to list shared networks: tenant id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/share?cloudIdentifier=%v&tenantIdentifier=%v", networkBasePath, cloudID, tenantID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var networks []Network
+	resp, err := s.client.Do(ctx, req, &networks)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return networks, resp, nil
 }
 
 // Get provides detailed information for network identified by id.
@@ -244,4 +279,43 @@ func (s *NetworksService) Delete(ctx context.Context, networkID string) (*Respon
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+// ShareNetworks shares networks between tenants.
+func (s *NetworksService) ShareNetworks(ctx context.Context, shareRequest *NetworkShareRequest) (*Response, error) {
+	if shareRequest == nil {
+		return nil, errors.New("failed to share networks: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/share", networkBasePath)
+	req, err := s.client.NewRequest(http.MethodPost, path, shareRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	networkRoot := new(networkRoot)
+	return s.client.Do(ctx, req, networkRoot)
+}
+
+// UnshareNetwork removes shared network from the tenant.
+func (s *NetworksService) UnshareNetwork(ctx context.Context, networkID, tenantID string) (*Response, error) {
+	if networkID == "" {
+		return nil, errors.New("failed to unshare network: network id must be supplied")
+	}
+	if tenantID == "" {
+		return nil, errors.New("failed to unshare network: tenant id must be supplied")
+	}
+	deleteRequest := &networkUnshareRequest{
+		NetworkID: networkID,
+		TenantID:  tenantID,
+	}
+
+	path := fmt.Sprintf("%v/share", networkBasePath)
+	req, err := s.client.NewRequest(http.MethodDelete, path, deleteRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	networkRoot := new(networkRoot)
+	return s.client.Do(ctx, req, networkRoot)
 }
