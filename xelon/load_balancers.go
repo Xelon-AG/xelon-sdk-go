@@ -26,6 +26,7 @@ type LoadBalancer struct {
 	Name              string                       `json:"name,omitempty"`
 	State             int                          `json:"state,omitempty"`
 	Tenant            *Tenant                      `json:"tenant,omitempty"`
+	Type              string                       `json:"type,omitempty"`
 }
 
 type LoadBalancerAssignedDevice struct {
