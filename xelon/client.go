@@ -46,7 +46,7 @@ type Client struct {
 	Networks             *NetworksService
 	PersistentStorages   *PersistentStoragesServiceV1
 	SSHKeys              *SSHKeysService
-	Templates            *TemplatesServiceV1
+	Templates            *TemplatesService
 	Tenants              *TenantsService
 }
 
@@ -145,7 +145,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.Networks = (*NetworksService)(&c.common)
 	c.PersistentStorages = (*PersistentStoragesServiceV1)(&c.common)
 	c.SSHKeys = (*SSHKeysService)(&c.common)
-	c.Templates = (*TemplatesServiceV1)(&c.common)
+	c.Templates = (*TemplatesService)(&c.common)
 	c.Tenants = (*TenantsService)(&c.common)
 
 	// Notify user if no ClientID is set
