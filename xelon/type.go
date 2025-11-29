@@ -9,3 +9,5 @@ type Meta struct {
 	To       int `json:"to,omitempty"`          // To is the ending index on the current page.
 	Total    int `json:"total,omitempty"`       // Total is the total number of items.
 }
+
+func (v Meta) String() string { return Stringify(v) }
