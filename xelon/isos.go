@@ -21,6 +21,7 @@ type ISO struct {
 	ID          string `json:"identifier,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Owner       string `json:"owner,omitempty"`
+	Status      bool   `json:"status,omitempty"`
 }
 
 type ISOCreateRequest struct {
