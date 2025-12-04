@@ -19,10 +19,12 @@ type LoadBalancer struct {
 	Cloud             *Cloud                       `json:"cloud,omitempty"`
 	CreatedAt         *time.Time                   `json:"createdAt,omitempty"`
 	ExternalIPAddress string                       `json:"externalIp,omitempty"`
+	ExternalNetworkID string                       `json:"externalNetworkIdentifier,omitempty"`
 	ForwardingRules   []LoadBalancerForwardingRule `json:"forwardingRules,omitempty"`
 	HealthStatus      string                       `json:"health,omitempty"`
 	ID                string                       `json:"identifier,omitempty"`
 	InternalIPAddress string                       `json:"internalIp,omitempty"`
+	InternalNetworkID string                       `json:"internalNetworkIdentifier,omitempty"`
 	Name              string                       `json:"name,omitempty"`
 	State             int                          `json:"state,omitempty"`
 	Tenant            *Tenant                      `json:"tenant,omitempty"`
