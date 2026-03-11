@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"net/http"
 )
 
@@ -14,13 +15,14 @@ type TemplatesService service
 
 // Template represents a Xelon base image.
 type Template struct {
-	Description string `json:"description,omitempty"`
-	Category    string `json:"category,omitempty"`
-	CloudID     string `json:"cloudIdentifier,omitempty"`
-	ID          string `json:"identifier,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Status      int    `json:"status,omitempty"`
-	Type        string `json:"type,omitempty"`
+	Description   string `json:"description,omitempty"`
+	Category      string `json:"category,omitempty"`
+	CloudID       string `json:"cloudIdentifier,omitempty"`
+	CloudInitType string `json:"cloudInitType,omitempty"`
+	ID            string `json:"identifier,omitempty"`
+	Name          string `json:"name,omitempty"`
+	Status        int    `json:"status,omitempty"`
+	Type          string `json:"type,omitempty"`
 }
 
 type TemplateCreateRequest struct {
@@ -59,7 +61,7 @@ type templatesRoot struct {
 func (v Template) String() string { return Stringify(v) }
 
 // List provides a list of available templates.
-func (s *TemplatesService) List(ctx context.Context, opts *TenantListOptions) ([]Template, *Response, error) {
+func (s *TemplatesService) List(ctx context.Context, opts *ListOptions) ([]Template, *Response, error) {
 	path, err := addOptions(templatesBasePath, opts)
 	if err != nil {
 		return nil, nil, err
@@ -80,6 +82,13 @@ func (s *TemplatesService) List(ctx context.Context, opts *TenantListOptions) ([
 	}
 
 	return root.Templates, resp, nil
+}
+
+// All returns an iterator to paginate over all available templates.
+//
+// The return iterator can be used in a for...range loop to easily process all templates.
+func (s *TemplatesService) All(ctx context.Context, opts *ListOptions) (iter.Seq2[Template, *Response], func() error) {
+	return newPaginator[Template](ctx, s.client, templatesBasePath, opts)
 }
 
 // Get provides detailed information for template identified by id.
