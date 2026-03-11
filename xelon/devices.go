@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"net/http"
 )
 
@@ -28,6 +29,7 @@ type Device struct {
 
 type DeviceCreateRequest struct {
 	BackupJobID          int                   `json:"backJobId,omitempty"`
+	CloudInit            *DeviceCloudInit      `json:"cloudInit,omitempty"`
 	CPUCores             int                   `json:"cpu"`
 	DiskSize             int                   `json:"diskSize"`
 	DisplayName          string                `json:"displayName"`
@@ -43,6 +45,10 @@ type DeviceCreateRequest struct {
 	SwapDiskSize         int                   `json:"swapDiskSize"`
 	TemplateID           string                `json:"templateId"`
 	TenantID             string                `json:"tenantIdentifier"`
+}
+
+type DeviceCloudInit struct {
+	UserData string `json:"userData,omitempty"`
 }
 
 type DeviceCreateNetwork struct {
@@ -103,6 +109,13 @@ func (s *DevicesService) List(ctx context.Context, opts *DeviceListOptions) ([]D
 	}
 
 	return root.Devices, resp, nil
+}
+
+// All returns an iterator to paginate over all devices.
+//
+// The return iterator can be used in a for...range loop to easily process all devices.
+func (s *DevicesService) All(ctx context.Context, opts *ListOptions) (iter.Seq2[Device, *Response], func() error) {
+	return newPaginator[Device](ctx, s.client, deviceBasePath, opts)
 }
 
 // Get provides detailed information for device identified by id.
