@@ -61,7 +61,7 @@ type templatesRoot struct {
 func (v Template) String() string { return Stringify(v) }
 
 // List provides a list of available templates.
-func (s *TemplatesService) List(ctx context.Context, opts *ListOptions) ([]Template, *Response, error) {
+func (s *TemplatesService) List(ctx context.Context, opts *TemplateListOptions) ([]Template, *Response, error) {
 	path, err := addOptions(templatesBasePath, opts)
 	if err != nil {
 		return nil, nil, err
