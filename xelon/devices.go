@@ -15,16 +15,25 @@ type DevicesService service
 
 // Device represents a Xelon device (virtual machine).
 type Device struct {
-	CPUCores          int    `json:"cpu,omitempty"`
-	DisplayName       string `json:"displayName,omitempty"`
-	HostName          string `json:"hostName,omitempty"`
-	ID                string `json:"identifier,omitempty"`
-	MonitoringEnabled bool   `json:"monitoring,omitempty"`
-	PoweredOn         bool   `json:"isPoweredOn,omitempty"`
-	RAM               int    `json:"ram,omitempty"`
-	State             int    `json:"state,omitempty"`
-	TemplateID        string `json:"templateId,omitempty"`
-	TenantID          string `json:"tenantIdentifier,omitempty"`
+	CPUCores          int             `json:"cpu,omitempty"`
+	DisplayName       string          `json:"displayName,omitempty"`
+	HostName          string          `json:"hostName,omitempty"`
+	ID                string          `json:"identifier,omitempty"`
+	MonitoringEnabled bool            `json:"monitoring,omitempty"`
+	PoweredOn         bool            `json:"isPoweredOn,omitempty"`
+	RAM               int             `json:"ram,omitempty"`
+	State             int             `json:"state,omitempty"`
+	Storages          []DeviceStorage `json:"storages,omitempty"`
+	TemplateID        string          `json:"templateId,omitempty"`
+	TenantID          string          `json:"tenantIdentifier,omitempty"`
+}
+
+type DeviceStorage struct {
+	ID         string `json:"id,omitempty"`
+	Name       string `json:"name,omitempty"`
+	Size       int    `json:"size,omitempty"`
+	Type       string `json:"type,omitempty"`
+	UnitNumber int    `json:"unitNumber,omitempty"`
 }
 
 type DeviceCreateRequest struct {
@@ -60,6 +69,13 @@ type DeviceCreateNetwork struct {
 
 type DeviceUpdateRequest struct {
 	DisplayName string `json:"displayName"`
+}
+
+type DeviceUpdateDiskRequest struct {
+	CreateSnapshot  bool   `json:"createSnapshot,omitempty"`
+	DiskID          string `json:"diskId"`
+	ExtendPartition bool   `json:"extendPartition"`
+	Size            int    `json:"size"`
 }
 
 type DeviceUpdateHardwareRequest struct {
@@ -169,6 +185,29 @@ func (s *DevicesService) Update(ctx context.Context, deviceID string, updateRequ
 	}
 
 	path := fmt.Sprintf("%v/%v", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	deviceRoot := new(deviceRoot)
+	resp, err := s.client.Do(ctx, req, deviceRoot)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return deviceRoot.Device, resp, nil
+}
+
+func (s *DevicesService) UpdateDisk(ctx context.Context, deviceID string, updateRequest *DeviceUpdateDiskRequest) (*Device, *Response, error) {
+	if deviceID == "" {
+		return nil, nil, errors.New("failed to update disk: device id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, nil, errors.New("failed to update disk: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/disk", deviceBasePath, deviceID)
 	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
