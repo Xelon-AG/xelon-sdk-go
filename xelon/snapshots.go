@@ -63,7 +63,7 @@ func (s *SnapshotsService) List(ctx context.Context, deviceID string, opts *Snap
 	return root.Snapshots, resp, err
 }
 
-// Delete removes snapshot identified by id
+// Delete removes snapshot identified by id.
 func (s *SnapshotsService) Delete(ctx context.Context, deviceID string, snapshotID int, deleteRequest *SnapshotDeleteRequest) (*Response, error) {
 	if deviceID == "" {
 		return nil, errors.New("failed to delete snapshot: device id must be supplied")
