@@ -15,17 +15,19 @@ type DevicesService service
 
 // Device represents a Xelon device (virtual machine).
 type Device struct {
-	CPUCores          int             `json:"cpu,omitempty"`
-	DisplayName       string          `json:"displayName,omitempty"`
-	HostName          string          `json:"hostName,omitempty"`
-	ID                string          `json:"identifier,omitempty"`
-	MonitoringEnabled bool            `json:"monitoring,omitempty"`
-	PoweredOn         bool            `json:"isPoweredOn,omitempty"`
-	RAM               int             `json:"ram,omitempty"`
-	State             int             `json:"state,omitempty"`
-	Storages          []DeviceStorage `json:"storages,omitempty"`
-	TemplateID        string          `json:"templateId,omitempty"`
-	TenantID          string          `json:"tenantIdentifier,omitempty"`
+	CPUCores              int             `json:"cpu,omitempty"`
+	CPUCoresHotAddEnabled bool            `json:"cpuHotAddEnabled,omitempty"`
+	DisplayName           string          `json:"displayName,omitempty"`
+	HostName              string          `json:"hostName,omitempty"`
+	ID                    string          `json:"identifier,omitempty"`
+	MonitoringEnabled     bool            `json:"monitoring,omitempty"`
+	PoweredOn             bool            `json:"isPoweredOn,omitempty"`
+	RAM                   int             `json:"ram,omitempty"`
+	RAMHotAddEnabled      bool            `json:"ramHotAddEnabled,omitempty"`
+	State                 int             `json:"state,omitempty"`
+	Storages              []DeviceStorage `json:"storages,omitempty"`
+	TemplateID            string          `json:"templateId,omitempty"`
+	TenantID              string          `json:"tenantIdentifier,omitempty"`
 }
 
 type DeviceStorage struct {
@@ -43,7 +45,9 @@ type DeviceCreateRequest struct {
 	DiskSize             int                   `json:"diskSize"`
 	DisplayName          string                `json:"displayName"`
 	HostName             string                `json:"hostName"`
-	EnableMonitoring     bool                  `json:"isMonitoring"`
+	EnableCPUCoresHotAdd bool                  `json:"cpuHotAdd,omitempty"`
+	EnableMonitoring     bool                  `json:"isMonitoring"` // Deprecated: new Device templates use builtin monitoring agents.
+	EnableRAMHotAdd      bool                  `json:"ramHotAdd,omitempty"`
 	Networks             []DeviceCreateNetwork `json:"networks,omitempty"`
 	Password             string                `json:"password"`
 	PasswordConfirmation string                `json:"passwordConfirmation"`
@@ -81,6 +85,11 @@ type DeviceUpdateDiskRequest struct {
 type DeviceUpdateHardwareRequest struct {
 	CPUCores int `json:"cpu"`
 	RAM      int `json:"ram"`
+}
+
+type DeviceUpdateHotAddRequest struct {
+	EnableCPUCoresHotAdd bool `json:"cpuHotAdd"`
+	EnableRAMHotAdd      bool `json:"ramHotAdd"`
 }
 
 // DeviceListOptions specifies the optional parameters to the DevicesService.List.
@@ -233,6 +242,30 @@ func (s *DevicesService) UpdateHardware(ctx context.Context, deviceID string, up
 
 	path := fmt.Sprintf("%v/%v/hardware", deviceBasePath, deviceID)
 	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	deviceRoot := new(deviceRoot)
+	resp, err := s.client.Do(ctx, req, deviceRoot)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return deviceRoot.Device, resp, nil
+}
+
+// UpdateHotAddOptions changes CPU and RAM hot-add (hotplug) settings.
+func (s *DevicesService) UpdateHotAddOptions(ctx context.Context, deviceID string, updateRequest *DeviceUpdateHotAddRequest) (*Device, *Response, error) {
+	if deviceID == "" {
+		return nil, nil, errors.New("failed to update device hot-add options: device id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, nil, errors.New("failed to update device hot-add options: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/edit-hotplug", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodPost, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
