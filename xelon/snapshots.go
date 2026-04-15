@@ -16,7 +16,7 @@ type SnapshotsService service
 type Snapshot struct {
 	Description string     `json:"description,omitempty"`
 	CreatedAt   *time.Time `json:"createdAt,omitempty"`
-	ID          int        `json:"id,omitempty"`
+	ID          string     `json:"identifier,omitempty"`
 	Name        string     `json:"name,omitempty"`
 }
 
@@ -64,11 +64,11 @@ func (s *SnapshotsService) List(ctx context.Context, deviceID string, opts *Snap
 }
 
 // Delete removes snapshot identified by id.
-func (s *SnapshotsService) Delete(ctx context.Context, deviceID string, snapshotID int, deleteRequest *SnapshotDeleteRequest) (*Response, error) {
+func (s *SnapshotsService) Delete(ctx context.Context, deviceID, snapshotID string, deleteRequest *SnapshotDeleteRequest) (*Response, error) {
 	if deviceID == "" {
 		return nil, errors.New("failed to delete snapshot: device id must be supplied")
 	}
-	if snapshotID == 0 {
+	if snapshotID == "" {
 		return nil, errors.New("failed to delete snapshot: id must be supplied")
 	}
 	if deleteRequest == nil {
