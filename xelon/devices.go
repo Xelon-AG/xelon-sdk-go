@@ -30,6 +30,12 @@ type Device struct {
 	TenantID              string          `json:"tenantIdentifier,omitempty"`
 }
 
+type DeviceNetwork struct {
+	Connected bool   `json:"isConnected,omitempty"`
+	ID        string `json:"identifier,omitempty"`
+	IPAddress string `json:"ip,omitempty"`
+}
+
 type DeviceStorage struct {
 	ID         string `json:"id,omitempty"`
 	Name       string `json:"name,omitempty"`
@@ -112,6 +118,8 @@ type devicesRoot struct {
 
 func (v Device) String() string { return Stringify(v) }
 
+func (v DeviceNetwork) String() string { return Stringify(v) }
+
 // List provides a list of all devices.
 func (s *DevicesService) List(ctx context.Context, opts *DeviceListOptions) ([]Device, *Response, error) {
 	path, err := addOptions(deviceBasePath, opts)
@@ -162,6 +170,28 @@ func (s *DevicesService) Get(ctx context.Context, deviceID string) (*Device, *Re
 	}
 
 	return device, resp, err
+}
+
+// GetNetworkInfo provides information about configured networks for device.
+func (s *DevicesService) GetNetworkInfo(ctx context.Context, deviceID string) ([]DeviceNetwork, *Response, error) {
+	if deviceID == "" {
+		return nil, nil, errors.New("failed to get network info: device id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/network", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var deviceNetworks []DeviceNetwork
+	resp, err := s.client.Do(ctx, req, &deviceNetworks)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return deviceNetworks, resp, nil
+
 }
 
 // Create makes a device with given payload.
