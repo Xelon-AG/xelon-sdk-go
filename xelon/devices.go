@@ -2,10 +2,12 @@ package xelon
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"iter"
 	"net/http"
+	"net/netip"
 )
 
 const deviceBasePath = "devices"
@@ -31,9 +33,49 @@ type Device struct {
 }
 
 type DeviceNetwork struct {
-	Connected bool   `json:"isConnected,omitempty"`
-	ID        string `json:"identifier,omitempty"`
-	IPAddress string `json:"ip,omitempty"`
+	Connected   bool                     `json:"isConnected,omitempty"`
+	ID          string                   `json:"identifier,omitempty"`
+	IPAddresses DeviceNetworkIPAddresses `json:"ip,omitempty"`
+}
+
+type DeviceNetworkIPAddresses []netip.Addr
+
+func (a *DeviceNetworkIPAddresses) UnmarshalJSON(data []byte) error {
+	// normalize null and missing to empty slice
+	if string(data) == "null" {
+		*a = []netip.Addr{}
+		return nil
+	}
+
+	// accept string or array that API might sent
+	var raw []string
+	if err := json.Unmarshal(data, &raw); err != nil {
+		var singleIPAddress string
+		if err := json.Unmarshal(data, &singleIPAddress); err != nil {
+			return fmt.Errorf("ip must be string or []string: %w", err)
+		}
+		raw = []string{singleIPAddress}
+	}
+
+	// validate entries and reject the whole payload on any bad value
+	ipAddresses := make([]netip.Addr, 0, len(raw))
+	seen := make(map[netip.Addr]bool, len(raw))
+	for i, s := range raw {
+		addr, err := netip.ParseAddr(s)
+		if err != nil {
+			return fmt.Errorf("ip[%d] %q: %w", i, s, err)
+		}
+		if addr.IsUnspecified() {
+			return fmt.Errorf("ip[%d] %q: unspecified address not allowed", i, s)
+		}
+		if seen[addr] {
+			return fmt.Errorf("ip[%d] %q: duplicate", i, s)
+		}
+		seen[addr] = true
+		ipAddresses = append(ipAddresses, addr)
+	}
+	*a = ipAddresses
+	return nil
 }
 
 type DeviceStorage struct {
