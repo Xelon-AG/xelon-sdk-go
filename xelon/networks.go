@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"net/http"
 )
 
@@ -129,6 +130,13 @@ func (s *NetworksService) List(ctx context.Context, opts *NetworkListOptions) ([
 	}
 
 	return root.Networks, resp, nil
+}
+
+// All returns an iterator to paginate over all available networks.
+//
+// The return iterator can be used in a for...range loop to easily process all networks.
+func (s *NetworksService) All(ctx context.Context, opts *ListOptions) (iter.Seq2[Network, *Response], func() error) {
+	return newPaginator[Network](ctx, s.client, networkBasePath, opts)
 }
 
 // ListShared provides a list of all shared networks.
