@@ -41,7 +41,7 @@ type Client struct {
 	Domains              *DomainsService
 	Firewalls            *FirewallsService
 	ISOs                 *ISOsService
-	Kubernetes           *KubernetesService
+	KubernetesTalos      *KubernetesTalosService
 	LoadBalancerClusters *LoadBalancerClustersService
 	LoadBalancers        *LoadBalancersService
 	Networks             *NetworksService
@@ -142,7 +142,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.Domains = (*DomainsService)(&c.common)
 	c.Firewalls = (*FirewallsService)(&c.common)
 	c.ISOs = (*ISOsService)(&c.common)
-	c.Kubernetes = (*KubernetesService)(&c.common)
+	c.KubernetesTalos = (*KubernetesTalosService)(&c.common)
 	c.LoadBalancerClusters = (*LoadBalancerClustersService)(&c.common)
 	c.LoadBalancers = (*LoadBalancersService)(&c.common)
 	c.Networks = (*NetworksService)(&c.common)

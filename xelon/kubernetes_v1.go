@@ -8,9 +8,9 @@ import (
 
 const kubernetesBasePath = "kubernetes-talos"
 
-// KubernetesService handles communication with the Kubernetes
+// KubernetesTalosService handles communication with the Kubernetes
 // related methods of the Xelon API.
-type KubernetesService service
+type KubernetesTalosService service
 
 // KubernetesCluster represents a Xelon Kubernetes cluster.
 type KubernetesCluster struct {
@@ -69,7 +69,7 @@ func (v ClusterPool) String() string {
 }
 
 // List provides information about Kubernetes clusters.
-func (s *KubernetesService) List(ctx context.Context) ([]KubernetesCluster, *Response, error) {
+func (s *KubernetesTalosService) List(ctx context.Context) ([]KubernetesCluster, *Response, error) {
 	path := fmt.Sprintf("%v/clusters", kubernetesBasePath)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
@@ -86,7 +86,7 @@ func (s *KubernetesService) List(ctx context.Context) ([]KubernetesCluster, *Res
 }
 
 // ListControlPlanes provides information about control plane on Kubernetes cluster.
-func (s *KubernetesService) ListControlPlanes(ctx context.Context, kubernetesClusterID string) (*ClusterControlPlane, *Response, error) {
+func (s *KubernetesTalosService) ListControlPlanes(ctx context.Context, kubernetesClusterID string) (*ClusterControlPlane, *Response, error) {
 	if kubernetesClusterID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -107,7 +107,7 @@ func (s *KubernetesService) ListControlPlanes(ctx context.Context, kubernetesClu
 }
 
 // ListClusterPools provides information about cluster pools on Kubernetes cluster.
-func (s *KubernetesService) ListClusterPools(ctx context.Context, kubernetesClusterID string) ([]ClusterPool, *Response, error) {
+func (s *KubernetesTalosService) ListClusterPools(ctx context.Context, kubernetesClusterID string) ([]ClusterPool, *Response, error) {
 	if kubernetesClusterID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -128,7 +128,7 @@ func (s *KubernetesService) ListClusterPools(ctx context.Context, kubernetesClus
 }
 
 // AddClusterNode creates and adds a new cluster node in the specified cluster pool.
-func (s *KubernetesService) AddClusterNode(ctx context.Context, kubernetesClusterID, clusterPoolID string) (*SuccessResponse, *Response, error) {
+func (s *KubernetesTalosService) AddClusterNode(ctx context.Context, kubernetesClusterID, clusterPoolID string) (*SuccessResponse, *Response, error) {
 	if kubernetesClusterID == "" || clusterPoolID == "" {
 		return nil, nil, ErrEmptyArgument
 	}
@@ -149,7 +149,7 @@ func (s *KubernetesService) AddClusterNode(ctx context.Context, kubernetesCluste
 }
 
 // DeleteClusterNode removes a cluster node.
-func (s *KubernetesService) DeleteClusterNode(ctx context.Context, kubernetesClusterID, clusterNodeID string) (*SuccessResponse, *Response, error) {
+func (s *KubernetesTalosService) DeleteClusterNode(ctx context.Context, kubernetesClusterID, clusterNodeID string) (*SuccessResponse, *Response, error) {
 	if kubernetesClusterID == "" || clusterNodeID == "" {
 		return nil, nil, ErrEmptyArgument
 	}

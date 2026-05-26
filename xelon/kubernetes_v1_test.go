@@ -22,7 +22,7 @@ func TestKubernetes_List(t *testing.T) {
 		Status: "Ready",
 	}}
 
-	clusters, _, err := client.Kubernetes.List(ctx)
+	clusters, _, err := client.KubernetesTalos.List(ctx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, clusters)
@@ -55,14 +55,14 @@ func TestKubernetes_ListControlPlanes(t *testing.T) {
 		},
 	}
 
-	controlPlanes, _, err := client.Kubernetes.ListControlPlanes(ctx, "abc")
+	controlPlanes, _, err := client.KubernetesTalos.ListControlPlanes(ctx, "abc")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, controlPlanes)
 }
 
 func TestKubernetes_ListControlPlanes_emptyKubernetesClusterID(t *testing.T) {
-	_, _, err := client.Kubernetes.ListControlPlanes(ctx, "")
+	_, _, err := client.KubernetesTalos.ListControlPlanes(ctx, "")
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrEmptyArgument, err)
@@ -99,14 +99,14 @@ func TestKubernetes_ListClusterPools(t *testing.T) {
 		},
 	}}
 
-	clusterPools, _, err := client.Kubernetes.ListClusterPools(ctx, "abc")
+	clusterPools, _, err := client.KubernetesTalos.ListClusterPools(ctx, "abc")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, clusterPools)
 }
 
 func TestKubernetes_ListClusterPools_emptyKubernetesClusterID(t *testing.T) {
-	_, _, err := client.Kubernetes.ListClusterPools(ctx, "")
+	_, _, err := client.KubernetesTalos.ListClusterPools(ctx, "")
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrEmptyArgument, err)
@@ -124,21 +124,21 @@ func TestKubernetes_AddClusterNode(t *testing.T) {
 		Success: "Cluster node will be added shortly",
 	}
 
-	successResponse, _, err := client.Kubernetes.AddClusterNode(ctx, "abc", "def")
+	successResponse, _, err := client.KubernetesTalos.AddClusterNode(ctx, "abc", "def")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, successResponse)
 }
 
 func TestKubernetes_AddClusterNode_emptyKubernetesClusterID(t *testing.T) {
-	_, _, err := client.Kubernetes.AddClusterNode(ctx, "", "def")
+	_, _, err := client.KubernetesTalos.AddClusterNode(ctx, "", "def")
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrEmptyArgument, err)
 }
 
 func TestKubernetes_AddClusterNode_emptyClusterPoolID(t *testing.T) {
-	_, _, err := client.Kubernetes.AddClusterNode(ctx, "abc", "")
+	_, _, err := client.KubernetesTalos.AddClusterNode(ctx, "abc", "")
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrEmptyArgument, err)
@@ -156,21 +156,21 @@ func TestKubernetes_DeleteClusterNode(t *testing.T) {
 		Success: "Cluster node has been deleted.",
 	}
 
-	successResponse, _, err := client.Kubernetes.DeleteClusterNode(ctx, "abc", "def")
+	successResponse, _, err := client.KubernetesTalos.DeleteClusterNode(ctx, "abc", "def")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, successResponse)
 }
 
 func TestKubernetes_DeleteClusterNode_emptyKubernetesClusterID(t *testing.T) {
-	_, _, err := client.Kubernetes.DeleteClusterNode(ctx, "", "def")
+	_, _, err := client.KubernetesTalos.DeleteClusterNode(ctx, "", "def")
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrEmptyArgument, err)
 }
 
 func TestKubernetes_DeleteClusterNode_emptyClusterNodeID(t *testing.T) {
-	_, _, err := client.Kubernetes.DeleteClusterNode(ctx, "abc", "")
+	_, _, err := client.KubernetesTalos.DeleteClusterNode(ctx, "abc", "")
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrEmptyArgument, err)
