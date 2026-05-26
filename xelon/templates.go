@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"iter"
 	"net/http"
+	"time"
 )
 
 const templatesBasePath = "templates"
@@ -15,14 +16,16 @@ type TemplatesService service
 
 // Template represents a Xelon base image.
 type Template struct {
-	Description   string `json:"description,omitempty"`
-	Category      string `json:"category,omitempty"`
-	CloudID       string `json:"cloudIdentifier,omitempty"`
-	CloudInitType string `json:"cloudInitType,omitempty"`
-	ID            string `json:"identifier,omitempty"`
-	Name          string `json:"name,omitempty"`
-	Status        int    `json:"status,omitempty"`
-	Type          string `json:"type,omitempty"`
+	Description   string     `json:"description,omitempty"`
+	Category      string     `json:"category,omitempty"`
+	CloudID       string     `json:"cloudIdentifier,omitempty"`
+	CloudInitType string     `json:"cloudInitType,omitempty"`
+	CreatedAt     *time.Time `json:"createdAt,omitempty"`
+	ID            string     `json:"identifier,omitempty"`
+	Name          string     `json:"name,omitempty"`
+	Status        int        `json:"status,omitempty"`
+	Type          string     `json:"type,omitempty"`
+	UpdateAt      *time.Time `json:"updatedAt,omitempty"`
 }
 
 type TemplateCreateRequest struct {
