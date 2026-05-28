@@ -16,7 +16,7 @@ func TestKubernetes_List(t *testing.T) {
 		assert.Equal(t, http.MethodGet, r.Method)
 		_, _ = fmt.Fprint(w, `[{"clusterIdentifier":"abc","name":"test cluster","status":"Ready"}]`)
 	})
-	expected := []KubernetesCluster{{
+	expected := []KubernetesTalosCluster{{
 		ID:     "abc",
 		Name:   "test cluster",
 		Status: "Ready",

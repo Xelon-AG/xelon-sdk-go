@@ -6,23 +6,23 @@ import (
 	"net/http"
 )
 
-const kubernetesBasePath = "kubernetes-talos"
+const kubernetesTalosBasePath = "kubernetes-talos"
 
 // KubernetesTalosService handles communication with the Kubernetes
 // related methods of the Xelon API.
 type KubernetesTalosService service
 
-// KubernetesCluster represents a Xelon Kubernetes cluster.
-type KubernetesCluster struct {
-	Cloud     *Cloud                   `json:"hv_system,omitempty"`
-	CreatedAt string                   `json:"createdAt,omitempty"`
-	Health    *KubernetesClusterHealth `json:"health,omitempty"`
-	ID        string                   `json:"clusterIdentifier,omitempty"`
-	Name      string                   `json:"name,omitempty"`
-	Status    string                   `json:"status,omitempty"`
+// KubernetesTalosCluster represents a Xelon Kubernetes cluster.
+type KubernetesTalosCluster struct {
+	Cloud     *Cloud                        `json:"hv_system,omitempty"`
+	CreatedAt string                        `json:"createdAt,omitempty"`
+	Health    *KubernetesTalosClusterHealth `json:"health,omitempty"`
+	ID        string                        `json:"clusterIdentifier,omitempty"`
+	Name      string                        `json:"name,omitempty"`
+	Status    string                        `json:"status,omitempty"`
 }
 
-type KubernetesClusterHealth struct {
+type KubernetesTalosClusterHealth struct {
 	Health           string `json:"health,omitempty"`
 	LastCheckingData string `json:"lastCheckingData,omitempty"`
 }
@@ -56,7 +56,7 @@ type ClusterPoolNode struct {
 	Status    string `json:"status,omitempty"`
 }
 
-func (v KubernetesCluster) String() string {
+func (v KubernetesTalosCluster) String() string {
 	return Stringify(v)
 }
 
@@ -69,14 +69,14 @@ func (v ClusterPool) String() string {
 }
 
 // List provides information about Kubernetes clusters.
-func (s *KubernetesTalosService) List(ctx context.Context) ([]KubernetesCluster, *Response, error) {
-	path := fmt.Sprintf("%v/clusters", kubernetesBasePath)
+func (s *KubernetesTalosService) List(ctx context.Context) ([]KubernetesTalosCluster, *Response, error) {
+	path := fmt.Sprintf("%v/clusters", kubernetesTalosBasePath)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var kubernetesClusters []KubernetesCluster
+	var kubernetesClusters []KubernetesTalosCluster
 	resp, err := s.client.Do(ctx, req, &kubernetesClusters)
 	if err != nil {
 		return nil, resp, err
@@ -91,7 +91,7 @@ func (s *KubernetesTalosService) ListControlPlanes(ctx context.Context, kubernet
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/cluster-control-planes", kubernetesBasePath, kubernetesClusterID)
+	path := fmt.Sprintf("%v/%v/cluster-control-planes", kubernetesTalosBasePath, kubernetesClusterID)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -112,7 +112,7 @@ func (s *KubernetesTalosService) ListClusterPools(ctx context.Context, kubernete
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/cluster-pools", kubernetesBasePath, kubernetesClusterID)
+	path := fmt.Sprintf("%v/%v/cluster-pools", kubernetesTalosBasePath, kubernetesClusterID)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -133,7 +133,7 @@ func (s *KubernetesTalosService) AddClusterNode(ctx context.Context, kubernetesC
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/add-node/%v", kubernetesBasePath, kubernetesClusterID, clusterPoolID)
+	path := fmt.Sprintf("%v/%v/add-node/%v", kubernetesTalosBasePath, kubernetesClusterID, clusterPoolID)
 	req, err := s.client.NewRequest(http.MethodPost, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -154,7 +154,7 @@ func (s *KubernetesTalosService) DeleteClusterNode(ctx context.Context, kubernet
 		return nil, nil, ErrEmptyArgument
 	}
 
-	path := fmt.Sprintf("%v/%v/delete-node/%v", kubernetesBasePath, kubernetesClusterID, clusterNodeID)
+	path := fmt.Sprintf("%v/%v/delete-node/%v", kubernetesTalosBasePath, kubernetesClusterID, clusterNodeID)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, nil, err
