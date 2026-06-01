@@ -2,6 +2,7 @@ package xelon
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"iter"
@@ -30,7 +31,7 @@ type KubernetesClusterHealth struct {
 }
 
 type KubernetesClusterCreateRequest struct {
-	CloudID              string                                     `json:"cloud_id"`
+	CloudID              string                                     `json:"cloud_identifier"`
 	ControlPlaneCPUCores int                                        `json:"control_plane_cpu"`
 	ControlPlaneDiskSize int                                        `json:"control_plane_disk"`
 	ControlPlaneRAM      int                                        `json:"control_plane_ram"`
@@ -48,6 +49,28 @@ type KubernetesClusterCreateRequest struct {
 	WorkerPools          []KubernetesClusterCreateRequestWorkerPool `json:"worker_pool"`
 }
 
+func (r KubernetesClusterCreateRequest) MarshalJSON() ([]byte, error) {
+	type alias KubernetesClusterCreateRequest
+	return json.Marshal(alias{
+		CloudID:              r.CloudID,
+		ControlPlaneCPUCores: r.ControlPlaneCPUCores,
+		ControlPlaneDiskSize: r.ControlPlaneDiskSize,
+		ControlPlaneRAM:      r.ControlPlaneRAM,
+		ControlPlaneType:     r.ControlPlaneType,
+		KubernetesVersion:    r.KubernetesVersion,
+		LoadBalancerCPUCores: r.LoadBalancerCPUCores,
+		LoadBalancerDiskSize: r.LoadBalancerDiskSize,
+		LoadBalancerRAM:      r.LoadBalancerRAM,
+		LoadBalancerType:     r.LoadBalancerType,
+		Name:                 r.Name,
+		PodCIDRBlock:         r.PodCIDRBlock,
+		ServiceCIDRBlock:     r.ServiceCIDRBlock,
+		TalosVersion:         r.TalosVersion,
+		TenantID:             r.TenantID,
+		WorkerPools:          nilToEmpty(r.WorkerPools),
+	})
+}
+
 type KubernetesClusterCreateRequestWorkerPool struct {
 	ExtraStorageEnabled  bool   `json:"worker_node_is_storage,omitempty"`
 	ExtraStorageDiskSize int    `json:"worker_node_extra_disk,omitempty"`
@@ -60,8 +83,8 @@ type KubernetesClusterCreateRequestWorkerPool struct {
 }
 
 type kubernetesClusterRoot struct {
-	KubernetesClusters *KubernetesCluster `json:"data,omitempty"`
-	Message            string             `json:"message,omitempty"`
+	KubernetesCluster *KubernetesCluster `json:"data,omitempty"`
+	Message           string             `json:"message,omitempty"`
 }
 
 type kubernetesClustersRoot struct {
@@ -103,23 +126,23 @@ func (s *KubernetesService) All(ctx context.Context, opts *ListOptions) (iter.Se
 }
 
 // Create makes a new Kubernetes cluster with given payload.
-func (s *KubernetesService) Create(ctx context.Context, createRequest *KubernetesClusterCreateRequest) (*Response, error) {
+func (s *KubernetesService) Create(ctx context.Context, createRequest *KubernetesClusterCreateRequest) (*KubernetesCluster, *Response, error) {
 	if createRequest == nil {
-		return nil, errors.New("failed to create kubernetes cluster: payload must be supplied")
+		return nil, nil, errors.New("failed to create kubernetes cluster: payload must be supplied")
 	}
 
 	req, err := s.client.NewRequest(http.MethodPost, kubernetesBasePath, createRequest)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	root := new(kubernetesClusterRoot)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
-		return resp, err
+		return nil, resp, err
 	}
 
-	return resp, nil
+	return root.KubernetesCluster, resp, nil
 }
 
 // Delete removes Kubernetes cluster identified by id.
@@ -135,4 +158,106 @@ func (s *KubernetesService) Delete(ctx context.Context, kubernetesClusterID stri
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+type KubernetesClusterControlPlane struct {
+	CPUCores int                     `json:"controlPlaneCpu,omitempty"`
+	DiskSize int                     `json:"controlPlaneDisk,omitempty"`
+	RAM      int                     `json:"controlPlaneRam,omitempty"`
+	Nodes    []KubernetesClusterNode `json:"nodes,omitempty"`
+}
+
+type KubernetesClusterNodePool struct {
+	CPUCores             int                     `json:"cpu,omitempty"`
+	DiskSize             int                     `json:"disk,omitempty"`
+	ExtraStorageDiskSize int                     `json:"extraStorage,omitempty"`
+	ID                   string                  `json:"identifier,omitempty"`
+	Name                 string                  `json:"name,omitempty"`
+	Nodes                []KubernetesClusterNode `json:"nodes,omitempty"`
+	RAM                  int                     `json:"memory,omitempty"`
+}
+
+type KubernetesClusterNode struct {
+	ID        string `json:"identifier,omitempty"`
+	LocalVMID string `json:"localvmid,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Status    string `json:"status,omitempty"`
+}
+
+func (v KubernetesClusterControlPlane) String() string { return Stringify(v) }
+func (v KubernetesClusterNodePool) String() string     { return Stringify(v) }
+func (v KubernetesClusterNode) String() string         { return Stringify(v) }
+
+// ListControlPlane provides information about control planes on Kubernetes cluster.
+func (s *KubernetesService) ListControlPlane(ctx context.Context, kubernetesClusterID string) (*KubernetesClusterControlPlane, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, errors.New("failed to list control plane: kubernetes cluster id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/control-planes", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	controlPlane := new(KubernetesClusterControlPlane)
+	resp, err := s.client.Do(ctx, req, controlPlane)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return controlPlane, resp, nil
+}
+
+// ListNodePools provides information about nodes pools on Kubernetes cluster.
+func (s *KubernetesService) ListNodePools(ctx context.Context, kubernetesClusterID string) ([]KubernetesClusterNodePool, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, errors.New("failed to list nodes pools: kubernetes cluster id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/pools", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var nodePools []KubernetesClusterNodePool
+	resp, err := s.client.Do(ctx, req, &nodePools)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return nodePools, resp, nil
+}
+
+// KubernetesClusterVersionMapping maps a Talos version to a list of compatible
+// Kubernetes versions for use in Kubernetes cluster provisioning and management.
+//
+// Example:
+//
+//	{
+//	  "1.10.9": ["1.28.13", "1.29.10", ...],
+//	  "1.11.6": ["1.29.10", "1.30.10", ...]
+//	}
+type KubernetesClusterVersionMapping map[string][]string
+
+// ListVersionMapping retrieves the mapping of Talos versions to their compatible Kubernetes versions.
+func (s *KubernetesService) ListVersionMapping(ctx context.Context, cloudID string) (KubernetesClusterVersionMapping, *Response, error) {
+	if cloudID == "" {
+		return nil, nil, errors.New("failed to list version mapping: cloud id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/versions/%v", kubernetesBasePath, cloudID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var mapping KubernetesClusterVersionMapping
+	resp, err := s.client.Do(ctx, req, &mapping)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return mapping, resp, nil
 }

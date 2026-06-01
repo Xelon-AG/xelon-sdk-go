@@ -11,3 +11,12 @@ type Meta struct {
 }
 
 func (v Meta) String() string { return Stringify(v) }
+
+// nilToEmpty returns an empty (but non-nil) slice if s is nil, otherwise s.
+// Used in MarshalJSON to ensure empty slices render as "[]" instead of "null".
+func nilToEmpty[T any](s []T) []T {
+	if s == nil {
+		return []T{}
+	}
+	return s
+}
