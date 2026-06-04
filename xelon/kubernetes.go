@@ -125,6 +125,28 @@ func (s *KubernetesService) All(ctx context.Context, opts *ListOptions) (iter.Se
 	return newPaginator[KubernetesCluster](ctx, s.client, kubernetesBasePath, opts)
 }
 
+// Get provides detailed information for Kubernetes cluster identified by id.
+func (s *KubernetesService) Get(ctx context.Context, kubernetesClusterID string) (*KubernetesCluster, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, errors.New("failed to get kubernetes cluster: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+
+	root := new(kubernetesClusterRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.KubernetesCluster, resp, nil
+}
+
 // Create makes a new Kubernetes cluster with given payload.
 func (s *KubernetesService) Create(ctx context.Context, createRequest *KubernetesClusterCreateRequest) (*KubernetesCluster, *Response, error) {
 	if createRequest == nil {
