@@ -31,22 +31,23 @@ type KubernetesClusterHealth struct {
 }
 
 type KubernetesClusterCreateRequest struct {
-	CloudID              string                                     `json:"cloud_identifier"`
-	ControlPlaneCPUCores int                                        `json:"control_plane_cpu"`
-	ControlPlaneDiskSize int                                        `json:"control_plane_disk"`
-	ControlPlaneRAM      int                                        `json:"control_plane_ram"`
-	ControlPlaneType     string                                     `json:"control_plane_type"`
-	KubernetesVersion    string                                     `json:"k8s_version"`
-	LoadBalancerCPUCores int                                        `json:"load_balancer_cpu"`
-	LoadBalancerDiskSize int                                        `json:"load_balancer_disk"`
-	LoadBalancerRAM      int                                        `json:"load_balancer_ram"`
-	LoadBalancerType     string                                     `json:"load_balancer_type"`
-	Name                 string                                     `json:"cluster_name"`
-	PodCIDRBlock         string                                     `json:"pod_subnet"`
-	ServiceCIDRBlock     string                                     `json:"service_subnet"`
-	TalosVersion         string                                     `json:"talos_version"`
-	TenantID             string                                     `json:"tenant_identifier"`
-	WorkerPools          []KubernetesClusterCreateRequestWorkerPool `json:"worker_pool"`
+	CloudID              string                                     `json:"cloudIdentifier"`
+	ControlPlaneCPUCores int                                        `json:"controlPlaneCpu"`
+	ControlPlaneDiskSize int                                        `json:"controlPlaneDisk"`
+	ControlPlaneRAM      int                                        `json:"controlPlaneRam"`
+	ControlPlaneType     string                                     `json:"controlPlaneType"`
+	KubernetesVersion    string                                     `json:"k8sVersion"`
+	LoadBalancerCPUCores int                                        `json:"loadBalancerCpu"`
+	LoadBalancerDiskSize int                                        `json:"loadBalancerDisk"`
+	LoadBalancerRAM      int                                        `json:"loadBalancerRam"`
+	LoadBalancerType     string                                     `json:"loadBalancerType"`
+	Name                 string                                     `json:"clusterName"`
+	PodCIDRBlock         string                                     `json:"podSubnet"`
+	SendEmail            bool                                       `json:"notify"`
+	ServiceCIDRBlock     string                                     `json:"serviceSubnet"`
+	TalosVersion         string                                     `json:"talosVersion"`
+	TenantID             string                                     `json:"tenantIdentifier"`
+	WorkerPools          []KubernetesClusterCreateRequestWorkerPool `json:"workerPool"`
 }
 
 func (r KubernetesClusterCreateRequest) MarshalJSON() ([]byte, error) {
@@ -72,14 +73,14 @@ func (r KubernetesClusterCreateRequest) MarshalJSON() ([]byte, error) {
 }
 
 type KubernetesClusterCreateRequestWorkerPool struct {
-	ExtraStorageEnabled  bool   `json:"worker_node_is_storage,omitempty"`
-	ExtraStorageDiskSize int    `json:"worker_node_extra_disk,omitempty"`
-	Index                string `json:"worker_pool_index"`
-	Name                 string `json:"worker_pool_name"`
-	NodeCount            int    `json:"worker_node_amount"`
-	NodeCPUCores         int    `json:"worker_node_cpu"`
-	NodeDiskSize         int    `json:"worker_node_disk"`
-	NodeRAM              int    `json:"worker_node_ram"`
+	ExtraStorageEnabled  bool   `json:"workerNodeIsStorage,omitempty"`
+	ExtraStorageDiskSize int    `json:"workerNodeExtraDisk,omitempty"`
+	Index                string `json:"workerPoolIndex"`
+	Name                 string `json:"workerPoolName"`
+	NodeCount            int    `json:"workerNodeAmount"`
+	NodeCPUCores         int    `json:"workerNodeCpu"`
+	NodeDiskSize         int    `json:"workerNodeDisk"`
+	NodeRAM              int    `json:"workerNodeRam"`
 }
 
 type kubernetesClusterRoot struct {
@@ -136,7 +137,6 @@ func (s *KubernetesService) Get(ctx context.Context, kubernetesClusterID string)
 	if err != nil {
 		return nil, nil, err
 	}
-
 
 	root := new(kubernetesClusterRoot)
 	resp, err := s.client.Do(ctx, req, root)
