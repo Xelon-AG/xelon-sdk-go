@@ -1,6 +1,7 @@
 package xelon
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -181,6 +182,27 @@ func (s *KubernetesService) Delete(ctx context.Context, kubernetesClusterID stri
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+// GetKubeConfig returns the raw Kubernetes config in YAML format.
+func (s *KubernetesService) GetKubeConfig(ctx context.Context, kubernetesClusterID string) ([]byte, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, errors.New("failed to get kube config: id must be supplied")
+	}
+	path := fmt.Sprintf("%v/%v/config/kube", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	req.Header.Set("Accept", "application/yaml")
+
+	var buf bytes.Buffer
+	resp, err := s.client.Do(ctx, req, &buf)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return buf.Bytes(), resp, nil
 }
 
 type KubernetesClusterControlPlane struct {
