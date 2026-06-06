@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/netip"
 	"reflect"
 	"time"
 )
 
 var timeType = reflect.TypeOf(time.Time{})
+var addrType = reflect.TypeOf(netip.Addr{})
 
 // Stringify attempts to create a string representation of Xelon types.
 func Stringify(message any) string {
@@ -60,8 +62,10 @@ func stringifyStruct(w io.Writer, v reflect.Value) {
 		_, _ = w.Write([]byte(v.Type().String()))
 	}
 
-	// special case for time.Time values
-	if v.Type() == timeType {
+	// special case for following values
+	// - time.Time
+	// - netip.Addr
+	if v.Type() == timeType || v.Type() == addrType {
 		_, _ = fmt.Fprintf(w, "{%s}", v.Interface())
 		return
 	}

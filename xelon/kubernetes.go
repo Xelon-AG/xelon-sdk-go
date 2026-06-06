@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"iter"
 	"net/http"
+	"net/netip"
 	"time"
 )
 
@@ -250,6 +251,47 @@ func (s *KubernetesService) ListNodePools(ctx context.Context, kubernetesCluster
 	}
 
 	return nodePools, resp, nil
+}
+
+type KubernetesClusterLoadBalancer struct {
+	CPUCores  int                                     `json:"loadBalancerCpu,omitempty"`
+	DiskSize  int                                     `json:"loadBalancerDisk,omitempty"`
+	Name      string                                  `json:"clusterName,omitempty"`
+	RAM       int                                     `json:"loadBalancerRam,omitempty"`
+	Instances []KubernetesClusterLoadBalancerInstance `json:"loadBalancers,omitempty"`
+}
+
+type KubernetesClusterLoadBalancerInstance struct {
+	Name      string     `json:"loadBalancerName,omitempty"`
+	IPAddress netip.Addr `json:"loadBalancerIp,omitempty"`
+}
+
+func (v KubernetesClusterLoadBalancer) String() string         { return Stringify(v) }
+func (v KubernetesClusterLoadBalancerInstance) String() string { return Stringify(v) }
+
+// ListLoadBalancer provides information about load balancer cluster.
+func (s *KubernetesService) ListLoadBalancer(ctx context.Context, kubernetesClusterID string) (*KubernetesClusterLoadBalancer, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, errors.New("failed to list load balancers: kubernetes cluster id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/load-balancers", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var loadBalancer []KubernetesClusterLoadBalancer
+	resp, err := s.client.Do(ctx, req, &loadBalancer)
+	if err != nil {
+		return nil, resp, err
+	}
+	if len(loadBalancer) > 0 {
+		// backend returns load balancer as array with single element
+		return &loadBalancer[0], resp, nil
+	} else {
+		return nil, resp, nil
+	}
 }
 
 // KubernetesClusterVersionMapping maps a Talos version to a list of compatible
