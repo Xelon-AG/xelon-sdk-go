@@ -207,6 +207,21 @@ type KubernetesClusterNode struct {
 	Status    string `json:"status,omitempty"`
 }
 
+type KubernetesClusterNodePoolCreateRequest struct {
+	WorkerPoolName      string `json:"workerPoolName"`
+	WorkerNodeAmount    int    `json:"workerNodeAmount"`
+	WorkerNodeCpu       int    `json:"workerNodeCpu"`
+	WorkerNodeRam       int    `json:"workerNodeRam"`
+	WorkerNodeDisk      int    `json:"workerNodeDisk"`
+	WorkerNodeIsStorage bool   `json:"workerNodeIsStorage"`
+	WorkerNodeExtraDisk int    `json:"workerNodeExtraDisk,omitempty"`
+}
+
+type kubernetesClusterNodePoolRoot struct {
+	KubernetesClusterNodePool *KubernetesClusterNodePool `json:"data,omitempty"`
+	Message                   string                     `json:"message,omitempty"`
+}
+
 func (v KubernetesClusterControlPlane) String() string { return Stringify(v) }
 func (v KubernetesClusterNodePool) String() string     { return Stringify(v) }
 func (v KubernetesClusterNode) String() string         { return Stringify(v) }
@@ -251,6 +266,84 @@ func (s *KubernetesService) ListNodePools(ctx context.Context, kubernetesCluster
 	}
 
 	return nodePools, resp, nil
+}
+
+// CreateNodePool makes a nodes pool on Kubernetes cluster with given payload.
+func (s *KubernetesService) CreateNodePool(ctx context.Context, kubernetesClusterID string, createRequest *KubernetesClusterNodePoolCreateRequest) (*KubernetesClusterNodePool, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, errors.New("failed to create nodes pool: kubernetes cluster id must be supplied")
+	}
+	if createRequest == nil {
+		return nil, nil, errors.New("failed to create nodes pool: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/pools", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(kubernetesClusterNodePoolRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.KubernetesClusterNodePool, resp, nil
+}
+
+// DeleteNodePool removes the node pool.
+func (s *KubernetesService) DeleteNodePool(ctx context.Context, kubernetesClusterID, nodePoolID string) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, errors.New("failed to delete nodes pool: kubernetes cluster id must be supplied")
+	}
+	if nodePoolID == "" {
+		return nil, errors.New("failed to delete nodes pool: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/pools/%v", kubernetesBasePath, kubernetesClusterID, nodePoolID)
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// CreateNode makes a new node in Kubernetes cluster.
+func (s *KubernetesService) CreateNode(ctx context.Context, kubernetesClusterID, nodePoolID string) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, errors.New("failed to create node: kubernetes cluster id must be supplied")
+	}
+	if nodePoolID == "" {
+		return nil, errors.New("failed to create node: node pool id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/pools/%v/nodes", kubernetesBasePath, kubernetesClusterID, nodePoolID)
+	req, err := s.client.NewRequest(http.MethodPost, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// DeleteNode removes node in Kubernetes cluster.
+func (s *KubernetesService) DeleteNode(ctx context.Context, kubernetesClusterID, nodeID string) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, errors.New("failed to delete node: kubernetes cluster id must be supplied")
+	}
+	if nodeID == "" {
+		return nil, errors.New("failed to delete node: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/nodes/%v", kubernetesBasePath, kubernetesClusterID, nodeID)
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }
 
 type KubernetesClusterLoadBalancer struct {
