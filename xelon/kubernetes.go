@@ -299,6 +299,30 @@ func (s *KubernetesService) ListNodePools(ctx context.Context, kubernetesCluster
 	return nodePools, resp, nil
 }
 
+// GetNodePool provides detailed information for nodes pool identified by id.
+func (s *KubernetesService) GetNodePool(ctx context.Context, kubernetesClusterID, nodePoolID string) (*KubernetesClusterNodePool, *Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, nil, errors.New("failed to get nodes pool: kubernetes cluster id must be supplied")
+	}
+	if nodePoolID == "" {
+		return nil, nil, errors.New("failed to get nodes pool: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/pools/%v", kubernetesBasePath, kubernetesClusterID, nodePoolID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nodePool := new(KubernetesClusterNodePool)
+	resp, err := s.client.Do(ctx, req, nodePool)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return nodePool, resp, nil
+}
+
 // CreateNodePool makes a nodes pool on Kubernetes cluster with given payload.
 func (s *KubernetesService) CreateNodePool(ctx context.Context, kubernetesClusterID string, createRequest *KubernetesClusterNodePoolCreateRequest) (*KubernetesClusterNodePool, *Response, error) {
 	if kubernetesClusterID == "" {
