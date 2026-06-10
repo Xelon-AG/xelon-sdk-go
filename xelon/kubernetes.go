@@ -230,13 +230,22 @@ type KubernetesClusterNode struct {
 }
 
 type KubernetesClusterNodePoolCreateRequest struct {
-	WorkerPoolName      string `json:"workerPoolName"`
-	WorkerNodeAmount    int    `json:"workerNodeAmount"`
-	WorkerNodeCpu       int    `json:"workerNodeCpu"`
-	WorkerNodeRam       int    `json:"workerNodeRam"`
-	WorkerNodeDisk      int    `json:"workerNodeDisk"`
-	WorkerNodeIsStorage bool   `json:"workerNodeIsStorage"`
-	WorkerNodeExtraDisk int    `json:"workerNodeExtraDisk,omitempty"`
+	CPUCores             int    `json:"workerNodeCpu"`
+	DiskSize             int    `json:"workerNodeDisk"`
+	ExtraStorageEnabled  bool   `json:"workerNodeIsStorage"`
+	ExtraStorageDiskSize int    `json:"workerNodeExtraDisk,omitempty"`
+	Name                 string `json:"workerPoolName"`
+	NodeCount            int    `json:"workerNodeAmount"`
+	RAM                  int    `json:"workerNodeRam"`
+}
+
+type KubernetesClusterNodePoolUpdateRequest struct {
+	CPUCores             int    `json:"cpuCoreCount"`
+	DiskSize             int    `json:"disk"`
+	ExtraStorageEnabled  int    `json:"hasExtraStorage"`
+	ExtraStorageDiskSize int    `json:"extraStorage"`
+	Name                 string `json:"name"`
+	RAM                  int    `json:"memory"`
 }
 
 type kubernetesClusterNodePoolRoot struct {
@@ -312,6 +321,27 @@ func (s *KubernetesService) CreateNodePool(ctx context.Context, kubernetesCluste
 	}
 
 	return root.KubernetesClusterNodePool, resp, nil
+}
+
+// UpdateNodePool changes a nodes pool.
+func (s *KubernetesService) UpdateNodePool(ctx context.Context, kubernetesClusterID, nodePoolID string, updateRequest *KubernetesClusterNodePoolUpdateRequest) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, errors.New("failed to update nodes pool: kubernetes cluster id must be supplied")
+	}
+	if nodePoolID == "" {
+		return nil, errors.New("failed to update nodes pool: id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, errors.New("failed to update nodes pool: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/pools/%v", kubernetesBasePath, kubernetesClusterID, nodePoolID)
+	req, err := s.client.NewRequest(http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }
 
 // DeleteNodePool removes the node pool.
