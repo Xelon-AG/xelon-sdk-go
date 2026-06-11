@@ -212,6 +212,12 @@ type KubernetesClusterControlPlane struct {
 	Nodes    []KubernetesClusterNode `json:"nodes,omitempty"`
 }
 
+type KubernetesClusterControlPlaneUpdateRequest struct {
+	CPUCores int `json:"cpuCoreCount"`
+	DiskSize int `json:"disk"`
+	RAM      int `json:"memory"`
+}
+
 type KubernetesClusterNodePool struct {
 	CPUCores             int                     `json:"cpu,omitempty"`
 	DiskSize             int                     `json:"disk,omitempty"`
@@ -276,6 +282,24 @@ func (s *KubernetesService) ListControlPlane(ctx context.Context, kubernetesClus
 	}
 
 	return controlPlane, resp, nil
+}
+
+// UpdateControlPlane changes a control plane.
+func (s *KubernetesService) UpdateControlPlane(ctx context.Context, kubernetesClusterID string, updateRequest *KubernetesClusterControlPlaneUpdateRequest) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, errors.New("ffailed to update control plane: kubernetes cluster id must be supplied")
+	}
+	if updateRequest == nil {
+		return nil, errors.New("failed to update control plane: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/control-planes", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }
 
 // ListNodePools provides information about nodes pools on Kubernetes cluster.
