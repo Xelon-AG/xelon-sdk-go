@@ -498,6 +498,11 @@ func (s *KubernetesService) ListLoadBalancer(ctx context.Context, kubernetesClus
 //	}
 type KubernetesClusterVersionMapping map[string][]string
 
+// KubernetesClusterVersionUpgradeRequest handles both Talos and Kubernetes upgrade.
+type KubernetesClusterVersionUpgradeRequest struct {
+	Version string `json:"version"`
+}
+
 // ListVersionMapping retrieves the mapping of Talos versions to their compatible Kubernetes versions.
 func (s *KubernetesService) ListVersionMapping(ctx context.Context, cloudID string) (KubernetesClusterVersionMapping, *Response, error) {
 	if cloudID == "" {
@@ -517,4 +522,40 @@ func (s *KubernetesService) ListVersionMapping(ctx context.Context, cloudID stri
 	}
 
 	return mapping, resp, nil
+}
+
+// UpgradeKubernetesVersion upgrades the cluster's Kubernetes version.
+func (s *KubernetesService) UpgradeKubernetesVersion(ctx context.Context, kubernetesClusterID string, upgradeRequest *KubernetesClusterVersionUpgradeRequest) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, errors.New("failed to upgrade kubernetes version: kubernetes cluster id must be supplied")
+	}
+	if upgradeRequest == nil {
+		return nil, errors.New("failed to upgrade kubernetes version: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/k8s-version", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodPost, path, upgradeRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// UpgradeTalosVersion upgrades the cluster's Talos version.
+func (s *KubernetesService) UpgradeTalosVersion(ctx context.Context, kubernetesClusterID string, upgradeRequest *KubernetesClusterVersionUpgradeRequest) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, errors.New("failed to upgrade talos version: kubernetes cluster id must be supplied")
+	}
+	if upgradeRequest == nil {
+		return nil, errors.New("failed to upgrade talos version: payload must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/%v/talos-version", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodPost, path, upgradeRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }
