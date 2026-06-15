@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -222,10 +223,10 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 		}
 
 		// if the error type is *url.Error, sanitize its URL before returning.
-		if e, ok := err.(*url.Error); ok {
-			if uri, err := url.Parse(e.URL); err == nil {
-				e.URL = sanitizeURL(uri).String()
-				return nil, e
+		if urlErr, ok := errors.AsType[*url.Error](err); ok {
+			if uri, err := url.Parse(urlErr.URL); err == nil {
+				urlErr.URL = sanitizeURL(uri).String()
+				return nil, urlErr
 			}
 		}
 
