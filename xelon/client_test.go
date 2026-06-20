@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -82,4 +84,15 @@ func TestClient_WithUserAgent(t *testing.T) {
 	)
 
 	assert.Equal(t, "custom-user-agent", client.userAgent)
+}
+
+func loadFixture(t *testing.T, fixtureName string) []byte {
+	t.Helper()
+
+	data, err := os.ReadFile(filepath.Join("testdata", fixtureName))
+	if err != nil {
+		t.Fatalf("failed to load fixture %q: %v", fixtureName, err)
+	}
+
+	return data
 }
