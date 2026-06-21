@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"iter"
 	"net/http"
+	"time"
 )
 
 const objectStorageBasePath = "object-storages"
@@ -13,15 +14,16 @@ const objectStorageBasePath = "object-storages"
 // ObjectStoragesService handles communication with the object storage related methods of the Xelon API.
 type ObjectStoragesService service
 
-// ObjectStorageUser represents
+// ObjectStorageUser represents a Xelon users for S3-compatible object storage.
 type ObjectStorageUser struct {
-	ID                     string   `json:"identifier,omitempty"`
-	Name                   string   `json:"name,omitempty"`
-	QuotaGB                int      `json:"quota,omitempty"`
-	S3Endpoints            []string `json:"s3endpoints,omitempty"`
-	Tenant                 *Tenant  `json:"tenant,omitempty"`
-	UsedGB                 float32  `json:"sizeUsedGb,omitempty"`
-	ZoneReplicationEnabled bool     `json:"isReplicated,omitempty"`
+	ID                     string                   `json:"identifier,omitempty"`
+	Name                   string                   `json:"name,omitempty"`
+	QuotaGB                int                      `json:"quota,omitempty"`
+	S3Endpoints            []string                 `json:"s3endpoints,omitempty"`
+	Tenant                 *Tenant                  `json:"tenant,omitempty"`
+	Tokens                 []ObjectStorageUserToken `json:"tokens,omitempty"`
+	UsedGB                 float32                  `json:"sizeUsedGb,omitempty"`
+	ZoneReplicationEnabled bool                     `json:"isReplicated,omitempty"`
 }
 
 type ObjectStorageUserCreateRequest struct {
@@ -147,13 +149,64 @@ func (s *ObjectStoragesService) UpdateUser(ctx context.Context, objectStorageUse
 	return user, resp, nil
 }
 
-// DeleteUser remove sobject storage user identified by id.
+// DeleteUser removes object storage user identified by id.
 func (s *ObjectStoragesService) DeleteUser(ctx context.Context, objectStorageUserID string) (*Response, error) {
 	if objectStorageUserID == "" {
 		return nil, errors.New("failed to delete object storage user: id must be supplied")
 	}
 
 	path := fmt.Sprintf("%v/users/%v", objectStorageBasePath, objectStorageUserID)
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// ObjectStorageUserToken represents a Xelon object storage user token.
+//
+// Note! SecretKey is available only after calling ObjectStoragesService.CreateUserToken once.
+type ObjectStorageUserToken struct {
+	AccessKey string     `json:"accessKey"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        string     `json:"identifier"`
+	SecretKey string     `json:"secretKey,omitempty"`
+}
+
+func (v ObjectStorageUserToken) String() string { return Stringify(v) }
+
+// CreateUserToken makes a new object storage user token.
+func (s *ObjectStoragesService) CreateUserToken(ctx context.Context, objectStorageUserID string) (*ObjectStorageUserToken, *Response, error) {
+	if objectStorageUserID == "" {
+		return nil, nil, errors.New("failed to create user token: object storage user id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/users/%v/tokens", objectStorageBasePath, objectStorageUserID)
+	req, err := s.client.NewRequest(http.MethodPost, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	token := new(ObjectStorageUserToken)
+	resp, err := s.client.Do(ctx, req, token)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return token, resp, nil
+}
+
+// DeleteUserToken removes object storage user token identified by id.
+func (s *ObjectStoragesService) DeleteUserToken(ctx context.Context, objectStorageUserID, objectStorageUserTokenID string) (*Response, error) {
+	if objectStorageUserID == "" {
+		return nil, errors.New("failed to delete user token: object storage user id must be supplied")
+	}
+	if objectStorageUserTokenID == "" {
+		return nil, errors.New("failed to delete user token: id must be supplied")
+	}
+
+	path := fmt.Sprintf("%v/users/%v/tokens/%v", objectStorageBasePath, objectStorageUserID, objectStorageUserTokenID)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err

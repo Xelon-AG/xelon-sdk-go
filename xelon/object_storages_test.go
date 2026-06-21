@@ -53,6 +53,12 @@ func TestObjectStorages_CreateUser(t *testing.T) {
 	expectedUser := &ObjectStorageUser{
 		ID:   "00000000-0000-0000-0000-000000000000",
 		Name: "test-user-0",
+		Tokens: []ObjectStorageUserToken{{
+			AccessKey: "ak_test_1234567890",
+			CreatedAt: mustTime(t, "2025-10-27T14:19:56+01:00"),
+			ID:        "000000000000",
+			SecretKey: "sk_test_1234567890abcdef",
+		}},
 	}
 
 	actualUser, resp, err := client.ObjectStorages.CreateUser(ctx, &ObjectStorageUserCreateRequest{
