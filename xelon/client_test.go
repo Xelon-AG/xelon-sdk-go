@@ -96,3 +96,14 @@ func loadFixture(t *testing.T, fixtureName string) []byte {
 
 	return data
 }
+
+func mustTime(t *testing.T, timestamp string) *time.Time {
+	t.Helper()
+
+	ts, err := time.Parse(time.RFC3339, timestamp)
+	if err != nil {
+		t.Fatalf("failed to parse timestamp %q: %v", timestamp, err)
+	}
+
+	return &ts
+}
