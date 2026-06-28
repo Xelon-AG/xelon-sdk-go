@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "identifier": "dns-zone-1",
+      "name": "example.com",
+      "ownerName": "test-tenant"
+    },
+    {
+      "identifier": "dns-zone-2",
+      "name": "example.net",
+      "ownerName": "test-tenant"
+    }
+  ],
+  "meta": {
+    "total": 2,
+    "lastPage": 1,
+    "perPage": 10,
+    "currentPage": 1,
+    "from": 1,
+    "to": 2
+  }
+}
