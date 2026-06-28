@@ -71,6 +71,44 @@ func TestObjectStorages_CreateUser(t *testing.T) {
 	assert.Equal(t, expectedUser, actualUser)
 }
 
+func TestObjectStorages_CreateUser_MissingData(t *testing.T) {
+	setup()
+	defer teardown()
+
+	type testCase struct {
+		responseBody string
+	}
+	tests := map[string]testCase{
+		"missing data": {
+			responseBody: `{"message":"S3 user successfully created"}`,
+		},
+		"null data": {
+			responseBody: `{"data":null,"message":"S3 user successfully created"}`,
+		},
+	}
+
+	var responseBody string
+	mux.HandleFunc("POST /object-storages/users", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			responseBody = test.responseBody
+
+			actualUser, resp, err := client.ObjectStorages.CreateUser(ctx, &ObjectStorageUserCreateRequest{
+				Name:    "test-user-0",
+				QuotaGB: 200,
+			})
+
+			assert.Nil(t, actualUser)
+			assert.NotNil(t, resp)
+			assert.EqualError(t, err, "failed to create object storage user: response data is empty")
+		})
+	}
+}
+
 func TestObjectStorages_UpdateUser(t *testing.T) {
 	setup()
 	defer teardown()
@@ -93,4 +131,42 @@ func TestObjectStorages_UpdateUser(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, expectedUser, actualUser)
+}
+
+func TestObjectStorages_UpdateUser_MissingData(t *testing.T) {
+	setup()
+	defer teardown()
+
+	type testCase struct {
+		responseBody string
+	}
+	tests := map[string]testCase{
+		"missing data": {
+			responseBody: `{"message":"S3 user successfully edited"}`,
+		},
+		"null data": {
+			responseBody: `{"data":null,"message":"S3 user successfully edited"}`,
+		},
+	}
+
+	var responseBody string
+	mux.HandleFunc("PUT /object-storages/users/00000000-0000-0000-0000-000000000000", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			responseBody = test.responseBody
+
+			actualUser, resp, err := client.ObjectStorages.UpdateUser(ctx, "00000000-0000-0000-0000-000000000000", &ObjectStorageUserUpdateRequest{
+				Name:    "test-user-0__updated",
+				QuotaGB: 200,
+			})
+
+			assert.Nil(t, actualUser)
+			assert.NotNil(t, resp)
+			assert.EqualError(t, err, "failed to update object storage user: response data is empty")
+		})
+	}
 }

@@ -1,14 +1,16 @@
 {
-  "identifier": "00000000-0000-0000-0000-000000000000",
-  "name": "test-user-0",
-  "createdAt": "2025-10-27T14:19:56+01:00",
-  "tokens": [
-    {
-      "identifier": "000000000000",
-      "accessKey": "ak_test_1234567890",
-      "secretKey": "sk_test_1234567890abcdef",
-      "createdAt": "2025-10-27T14:19:56+01:00"
-    }
-  ],
+  "data": {
+    "identifier": "00000000-0000-0000-0000-000000000000",
+    "name": "test-user-0",
+    "createdAt": "2025-10-27T14:19:56+01:00",
+    "tokens": [
+      {
+        "identifier": "000000000000",
+        "accessKey": "ak_test_1234567890",
+        "secretKey": "sk_test_1234567890abcdef",
+        "createdAt": "2025-10-27T14:19:56+01:00"
+      }
+    ]
+  },
   "message": "S3 user successfully created"
 }
