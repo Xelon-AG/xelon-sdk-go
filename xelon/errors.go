@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	ErrEmptyArgument          = errors.New("xelon-sdk-go: argument cannot be empty")
-	ErrEmptyPayloadNotAllowed = errors.New("xelon-sdk-go: empty payload is not allowed")
+	ErrEmptyArgument          = errors.New("argument cannot be empty")
+	ErrEmptyPayloadNotAllowed = errors.New("payload cannot be empty")
 )
 
 type ErrorResponse struct {

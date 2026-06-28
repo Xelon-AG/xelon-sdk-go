@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "id": 244042432,
+      "type": "A",
+      "host": "www",
+      "record": "192.0.2.10",
+      "failover": 0,
+      "ttl": 3600,
+      "status": 1
+    },
+    {
+      "id": 244042433,
+      "type": "CNAME",
+      "host": "app",
+      "record": "www.example.com",
+      "failover": 0,
+      "ttl": 3600,
+      "status": 1
+    }
+  ]
+}

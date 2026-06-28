@@ -2,7 +2,6 @@ package xelon
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"iter"
 	"net/http"
@@ -10,7 +9,7 @@ import (
 
 const dnsBasePath = "dns"
 
-// DomainsService handles communication with the DNS related methods of the Xelon REST API.
+// DomainsService handles communication with DNS methods of the Xelon API.
 type DomainsService service
 
 // DNSZone represents a Xelon DNS zone.
@@ -25,8 +24,8 @@ type DNSZoneCreateRequest struct {
 }
 
 type DNSZoneListOptions struct {
-	Sort   string `url:"sort,omitempty"`
 	Search string `url:"search,omitempty"`
+	Sort   string `url:"sort,omitempty"`
 
 	ListOptions
 }
@@ -43,8 +42,8 @@ type dnsZonesRoot struct {
 
 func (v DNSZone) String() string { return Stringify(v) }
 
-// ListDNSZones provides a list of all DNS zones.
-func (s *DomainsService) ListDNSZones(ctx context.Context, opts *DNSZoneListOptions) ([]DNSZone, *Response, error) {
+// ListZones lists DNS zones.
+func (s *DomainsService) ListZones(ctx context.Context, opts *DNSZoneListOptions) ([]DNSZone, *Response, error) {
 	path, err := addOptions(dnsBasePath, opts)
 	if err != nil {
 		return nil, nil, err
@@ -67,17 +66,17 @@ func (s *DomainsService) ListDNSZones(ctx context.Context, opts *DNSZoneListOpti
 	return root.DNSZones, resp, nil
 }
 
-// AllDNSZones returns an iterator to paginate over all DNS zones.
+// AllZones returns an iterator over all DNS zones.
 //
-// The return iterator can be used in a for...range loop to easily process all zones.
-func (s *DomainsService) AllDNSZones(ctx context.Context, opts *ListOptions) (iter.Seq2[DNSZone, *Response], func() error) {
+// The returned iterator can be used in a for...range loop.
+func (s *DomainsService) AllZones(ctx context.Context, opts *ListOptions) (iter.Seq2[DNSZone, *Response], func() error) {
 	return newPaginator[DNSZone](ctx, s.client, dnsBasePath, opts)
 }
 
-// GetDNSZone provides detailed information for DNS zone identified by id.
-func (s *DomainsService) GetDNSZone(ctx context.Context, dnsZoneID string) (*DNSZone, *Response, error) {
+// GetZone gets a DNS zone by id.
+func (s *DomainsService) GetZone(ctx context.Context, dnsZoneID string) (*DNSZone, *Response, error) {
 	if dnsZoneID == "" {
-		return nil, nil, errors.New("failed to get dns zone: id must be supplied")
+		return nil, nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
 	}
 
 	path := fmt.Sprintf("%v/%v", dnsBasePath, dnsZoneID)
@@ -95,10 +94,10 @@ func (s *DomainsService) GetDNSZone(ctx context.Context, dnsZoneID string) (*DNS
 	return dnsZone, resp, err
 }
 
-// CreateDNSZone makes a new DNS with given payload.
-func (s *DomainsService) CreateDNSZone(ctx context.Context, createRequest *DNSZoneCreateRequest) (*DNSZone, *Response, error) {
+// CreateZone creates a DNS zone.
+func (s *DomainsService) CreateZone(ctx context.Context, createRequest *DNSZoneCreateRequest) (*DNSZone, *Response, error) {
 	if createRequest == nil {
-		return nil, nil, errors.New("failed to create dns zone: payload must be supplied")
+		return nil, nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
 	}
 
 	req, err := s.client.NewRequest(http.MethodPost, dnsBasePath, createRequest)
@@ -115,10 +114,10 @@ func (s *DomainsService) CreateDNSZone(ctx context.Context, createRequest *DNSZo
 	return root.DNSZone, resp, nil
 }
 
-// DeleteDNSZone removes DNS zone by id.
-func (s *DomainsService) DeleteDNSZone(ctx context.Context, dnsZoneID string) (*Response, error) {
+// DeleteZone deletes a DNS zone by id.
+func (s *DomainsService) DeleteZone(ctx context.Context, dnsZoneID string) (*Response, error) {
 	if dnsZoneID == "" {
-		return nil, errors.New("failed to delete dns zone: id must be supplied")
+		return nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
 	}
 
 	path := fmt.Sprintf("%v/%v", dnsBasePath, dnsZoneID)
@@ -130,57 +129,78 @@ func (s *DomainsService) DeleteDNSZone(ctx context.Context, dnsZoneID string) (*
 	return s.client.Do(ctx, req, nil)
 }
 
-// DNSRecord represetns a Xelon DNS records.
+// DNSRecordType represents a supported DNS record type.
+type DNSRecordType string
+
+const (
+	DNSRecordTypeA     DNSRecordType = "A"
+	DNSRecordTypeAAAA  DNSRecordType = "AAAA"
+	DNSRecordTypeALIAS DNSRecordType = "ALIAS"
+	DNSRecordTypeCAA   DNSRecordType = "CAA"
+	DNSRecordTypeCNAME DNSRecordType = "CNAME"
+	DNSRecordTypeMX    DNSRecordType = "MX"
+	DNSRecordTypeNS    DNSRecordType = "NS"
+	DNSRecordTypePTR   DNSRecordType = "PTR"
+	DNSRecordTypeRP    DNSRecordType = "RP"
+	DNSRecordTypeSRV   DNSRecordType = "SRV"
+	DNSRecordTypeSSHFP DNSRecordType = "SSHFP"
+	DNSRecordTypeTLSA  DNSRecordType = "TLSA"
+	DNSRecordTypeTXT   DNSRecordType = "TXT"
+)
+
+// DNSRecord represents a Xelon DNS record.
 type DNSRecord struct {
-	Failover int    `json:"failover,omitempty"`
-	Host     string `json:"host,omitempty"`
-	ID       int    `json:"id,omitempty"`
-	Record   string `json:"record,omitempty"`
-	Status   int    `json:"status,omitempty"`
-	TTL      int    `json:"ttl,omitempty"`
-	Type     string `json:"type,omitempty"`
+	Failover int           `json:"failover,omitempty"`
+	Host     string        `json:"host,omitempty"`
+	ID       int           `json:"id,omitempty"`
+	Record   string        `json:"record,omitempty"`
+	Status   int           `json:"status,omitempty"`
+	TTL      int           `json:"ttl,omitempty"`
+	Type     DNSRecordType `json:"type,omitempty"`
 }
 
 type DNSRecordCreateRequest struct {
-	Algorithm       string `json:"algorithm,omitempty"`   // for SSHFP type
-	CAAFlag         int    `json:"caaFlag,omitempty"`     // for CAA type
-	CAAValue        int    `json:"caaValue,omitempty"`    // for CAA type
-	Certificate     string `json:"certificate,omitempty"` // for TLSA type
-	Fingerprint     string `json:"fingerprint,omitempty"` // for SSHFP type
-	FingerprintType string `json:"fpType,omitempty"`      // for SSHFP type
-	Host            string `json:"host"`
-	Mail            string `json:"mail,omitempty"`         // for RP type
-	MatchingType    int    `json:"matchingType,omitempty"` // for TLSA type
-	Port            int    `json:"port,omitempty"`         // for SRV type
-	Priority        int    `json:"priority,omitempty"`     // for MX, SRV types
-	Record          string `json:"record"`
-	Selector        int    `json:"selector,omitempty"` // for TLSA type
-	Tag             string `json:"tag,omitempty"`      // for CAA type
-	Type            string `json:"type"`
-	TTL             int    `json:"ttl"`
-	Usage           int    `json:"usage,omitempty"`  // for TLSA type
-	Weight          int    `json:"weight,omitempty"` // for SRV type
+	Algorithm       int           `json:"algorithm,omitempty"`    // for SSHFP type
+	CAAFlag         int           `json:"caaFlag,omitempty"`      // for CAA type
+	CAAType         string        `json:"caaType,omitempty"`      // for CAA type
+	CAAValue        string        `json:"caaValue,omitempty"`     // for CAA type
+	Certificate     string        `json:"certificate,omitempty"`  // for TLSA type
+	Fingerprint     string        `json:"fingerprint,omitempty"`  // for SSHFP type
+	FingerprintType string        `json:"fpType,omitempty"`       // for SSHFP type
+	Host            string        `json:"host"`                   // required
+	Mail            string        `json:"mail,omitempty"`         // for RP type
+	MatchingType    int           `json:"matchingType,omitempty"` // for TLSA type
+	Port            int           `json:"port,omitempty"`         // for SRV type
+	Priority        int           `json:"priority,omitempty"`     // for MX, SRV types
+	Record          string        `json:"record"`
+	Selector        int           `json:"selector,omitempty"` // for TLSA type
+	Tag             string        `json:"tag,omitempty"`      // for CAA type
+	TTL             int           `json:"ttl"`                // required
+	Type            DNSRecordType `json:"type"`               // required
+	Usage           int           `json:"usage,omitempty"`    // for TLSA type
+	Weight          int           `json:"weight,omitempty"`   // for SRV type
 }
 
 type DNSRecordUpdateRequest struct {
-	Algorithm       string `json:"algorithm,omitempty"`   // for SSHFP type
-	CAAFlag         int    `json:"caaFlag,omitempty"`     // for CAA type
-	CAAValue        int    `json:"caaValue,omitempty"`    // for CAA type
-	Certificate     string `json:"certificate,omitempty"` // for TLSA type
-	Fingerprint     string `json:"fingerprint,omitempty"` // for SSHFP type
-	FingerprintType string `json:"fpType,omitempty"`      // for SSHFP type
-	Host            string `json:"host"`
-	Mail            string `json:"mail,omitempty"`         // for RP type
-	MatchingType    int    `json:"matchingType,omitempty"` // for TLSA type
-	Port            int    `json:"port,omitempty"`         // for SRV type
-	Priority        int    `json:"priority,omitempty"`     // for MX, SRV types
-	Record          string `json:"record"`
-	Selector        int    `json:"selector,omitempty"` // for TLSA type
-	Tag             string `json:"tag,omitempty"`      // for CAA type
-	Type            string `json:"type"`
-	TTL             int    `json:"ttl"`
-	Usage           int    `json:"usage,omitempty"`  // for TLSA type
-	Weight          int    `json:"weight,omitempty"` // for SRV type
+	Algorithm       int           `json:"algorithm,omitempty"`    // for SSHFP type
+	CAAFlag         int           `json:"caaFlag,omitempty"`      // for CAA type
+	CAAType         string        `json:"caaType,omitempty"`      // for CAA type
+	CAAValue        string        `json:"caaValue,omitempty"`     // for CAA type
+	Certificate     string        `json:"certificate,omitempty"`  // for TLSA type
+	Fingerprint     string        `json:"fingerprint,omitempty"`  // for SSHFP type
+	FingerprintType string        `json:"fpType,omitempty"`       // for SSHFP type
+	Host            string        `json:"host"`                   // required
+	Mail            string        `json:"mail,omitempty"`         // for RP type
+	MatchingType    int           `json:"matchingType,omitempty"` // for TLSA type
+	Port            int           `json:"port,omitempty"`         // for SRV type
+	Priority        int           `json:"priority,omitempty"`     // for MX, SRV types
+	Record          string        `json:"record"`
+	Selector        int           `json:"selector,omitempty"` // for TLSA type
+	Tag             string        `json:"tag,omitempty"`      // for CAA type
+	TTL             int           `json:"ttl"`                // required
+	Type            DNSRecordType `json:"type"`               // required
+	Usage           int           `json:"usage,omitempty"`    // for TLSA type
+	Weight          int           `json:"weight,omitempty"`   // for SRV type
 }
 
 type dnsRecordRoot struct {
@@ -193,10 +213,10 @@ type dnsRecordsRoot struct {
 
 func (v DNSRecord) String() string { return Stringify(v) }
 
-// ListDNSRecords provides a list of all DNS records for DNS zone.
-func (s *DomainsService) ListDNSRecords(ctx context.Context, dnsZoneID string) ([]DNSRecord, *Response, error) {
+// ListRecords lists records for a DNS zone.
+func (s *DomainsService) ListRecords(ctx context.Context, dnsZoneID string) ([]DNSRecord, *Response, error) {
 	if dnsZoneID == "" {
-		return nil, nil, errors.New("failed to list dns records: dns zone id must be supplied")
+		return nil, nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
 	}
 
 	path := fmt.Sprintf("%v/%v/records", dnsBasePath, dnsZoneID)
@@ -214,13 +234,13 @@ func (s *DomainsService) ListDNSRecords(ctx context.Context, dnsZoneID string) (
 	return root.DNSRecords, resp, nil
 }
 
-// CreateDNSRecord makes a new DNS record with given payload.
-func (s *DomainsService) CreateDNSRecord(ctx context.Context, dnsZoneID string, createRequest *DNSRecordCreateRequest) (*Response, error) {
+// CreateRecord creates a DNS record.
+func (s *DomainsService) CreateRecord(ctx context.Context, dnsZoneID string, createRequest *DNSRecordCreateRequest) (*Response, error) {
 	if dnsZoneID == "" {
-		return nil, errors.New("failed to create dns record: dns zone id must be supplied")
+		return nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
 	}
 	if createRequest == nil {
-		return nil, errors.New("failed to create dns record: payload must be supplied")
+		return nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
 	}
 
 	path := fmt.Sprintf("%v/%v/records", dnsBasePath, dnsZoneID)
@@ -238,16 +258,16 @@ func (s *DomainsService) CreateDNSRecord(ctx context.Context, dnsZoneID string, 
 	return resp, nil
 }
 
-// UpdateDNSRecord changes DNS record identified by id.
-func (s *DomainsService) UpdateDNSRecord(ctx context.Context, dnsZoneID, dnsRecordID string, updateRequest *DNSRecordUpdateRequest) (*Response, error) {
+// UpdateRecord updates a DNS record by id.
+func (s *DomainsService) UpdateRecord(ctx context.Context, dnsZoneID string, dnsRecordID int, updateRequest *DNSRecordUpdateRequest) (*Response, error) {
 	if dnsZoneID == "" {
-		return nil, errors.New("failed to update dns record: dns zone id must be supplied")
+		return nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
 	}
-	if dnsRecordID == "" {
-		return nil, errors.New("failed to update dns record: dns record id must be supplied")
+	if dnsRecordID <= 0 {
+		return nil, fmt.Errorf("record id: %w", ErrEmptyArgument)
 	}
 	if updateRequest == nil {
-		return nil, errors.New("failed to update dns record: payload must be supplied")
+		return nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
 	}
 
 	path := fmt.Sprintf("%v/%v/records/%v", dnsBasePath, dnsZoneID, dnsRecordID)
@@ -265,13 +285,13 @@ func (s *DomainsService) UpdateDNSRecord(ctx context.Context, dnsZoneID, dnsReco
 	return resp, nil
 }
 
-// DeleteDNSRecord removes DNS record identified by id.
-func (s *DomainsService) DeleteDNSRecord(ctx context.Context, dnsZoneID, dnsRecordID string) (*Response, error) {
+// DeleteRecord deletes a DNS record by id.
+func (s *DomainsService) DeleteRecord(ctx context.Context, dnsZoneID string, dnsRecordID int) (*Response, error) {
 	if dnsZoneID == "" {
-		return nil, errors.New("failed to delete dns record: dns zone id must be supplied")
+		return nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
 	}
-	if dnsRecordID == "" {
-		return nil, errors.New("failed to delete dns record: dns record id must be supplied")
+	if dnsRecordID <= 0 {
+		return nil, fmt.Errorf("record id: %w", ErrEmptyArgument)
 	}
 
 	path := fmt.Sprintf("%v/%v/records/%v", dnsBasePath, dnsZoneID, dnsRecordID)
@@ -281,4 +301,75 @@ func (s *DomainsService) DeleteDNSRecord(ctx context.Context, dnsZoneID, dnsReco
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+// DNSSOA represents a Xelon DNS SOA record.
+type DNSSOA struct {
+	AdminEmail   string `json:"adminMail,omitempty"`
+	Expire       int    `json:"expire,omitempty"`
+	PrimaryNS    string `json:"primaryNs,omitempty"`
+	Refresh      int    `json:"refresh,omitempty"`
+	Retry        int    `json:"retry,omitempty"`
+	SerialNumber int    `json:"serialNumber,omitempty"`
+	TTL          int    `json:"ttl,omitempty"`
+}
+
+type DNSSOAUpdateRequest struct {
+	AdminEmail string `json:"adminMail"`
+	Expire     int    `json:"expire"`
+	PrimaryNS  string `json:"primaryNs"`
+	Refresh    int    `json:"refresh"`
+	Retry      int    `json:"retry"`
+	TTL        int    `json:"ttl"`
+}
+
+type dnsSOARoot struct {
+	Message string `json:"message,omitempty"`
+}
+
+func (v DNSSOA) String() string { return Stringify(v) }
+
+// GetSOA gets the SOA record for a DNS zone.
+func (s *DomainsService) GetSOA(ctx context.Context, dnsZoneID string) (*DNSSOA, *Response, error) {
+	if dnsZoneID == "" {
+		return nil, nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
+	}
+
+	path := fmt.Sprintf("%v/%v/soa", dnsBasePath, dnsZoneID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	dnsSOA := new(DNSSOA)
+	resp, err := s.client.Do(ctx, req, dnsSOA)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return dnsSOA, resp, nil
+}
+
+// UpdateSOA updates the SOA record for a DNS zone.
+func (s *DomainsService) UpdateSOA(ctx context.Context, dnsZoneID string, updateRequest *DNSSOAUpdateRequest) (*Response, error) {
+	if dnsZoneID == "" {
+		return nil, fmt.Errorf("zone id: %w", ErrEmptyArgument)
+	}
+	if updateRequest == nil {
+		return nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
+	}
+
+	path := fmt.Sprintf("%v/%v/soa", dnsBasePath, dnsZoneID)
+	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	root := new(dnsSOARoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }

@@ -1,0 +1,9 @@
+{
+  "serialNumber": 2025011302,
+  "primaryNs": "ns1.xelon.ch",
+  "adminMail": "hostmaster.xelon.ch",
+  "refresh": 10800,
+  "retry": 3600,
+  "expire": 604800,
+  "ttl": 3600
+}

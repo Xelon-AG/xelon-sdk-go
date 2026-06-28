@@ -1,0 +1,8 @@
+{
+  "data": {
+    "identifier": "dns-zone-1",
+    "name": "example.com",
+    "ownerName": "test-tenant"
+  },
+  "message": "DNS zone created successfully."
+}
