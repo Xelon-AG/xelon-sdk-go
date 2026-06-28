@@ -45,6 +45,10 @@ type ObjectStorageUserListOptions struct {
 	ListOptions
 }
 
+type objectStorageUserRoot struct {
+	ObjectStorageUser *ObjectStorageUser `json:"data"`
+}
+
 type objectStorageUsersRoot struct {
 	ObjectStorageUsers []ObjectStorageUser `json:"data"`
 	Meta               *Meta               `json:"meta,omitempty"`
@@ -116,13 +120,16 @@ func (s *ObjectStoragesService) CreateUser(ctx context.Context, createRequest *O
 		return nil, nil, err
 	}
 
-	user := new(ObjectStorageUser)
-	resp, err := s.client.Do(ctx, req, user)
+	root := new(objectStorageUserRoot)
+	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
+	if root.ObjectStorageUser == nil {
+		return nil, resp, errors.New("failed to create object storage user: response data is empty")
+	}
 
-	return user, resp, nil
+	return root.ObjectStorageUser, resp, nil
 }
 
 // UpdateUser changes a object storage user.
@@ -140,13 +147,16 @@ func (s *ObjectStoragesService) UpdateUser(ctx context.Context, objectStorageUse
 		return nil, nil, err
 	}
 
-	user := new(ObjectStorageUser)
-	resp, err := s.client.Do(ctx, req, user)
+	root := new(objectStorageUserRoot)
+	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
+	if root.ObjectStorageUser == nil {
+		return nil, resp, errors.New("failed to update object storage user: response data is empty")
+	}
 
-	return user, resp, nil
+	return root.ObjectStorageUser, resp, nil
 }
 
 // DeleteUser removes object storage user identified by id.
