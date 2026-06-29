@@ -170,3 +170,61 @@ func TestObjectStorages_UpdateUser_MissingData(t *testing.T) {
 		})
 	}
 }
+
+func TestObjectStorages_CreateUserToken(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("POST /object-storages/users/00000000-0000-0000-0000-000000000000/tokens", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		fixture := loadFixture(t, "objectstorages_create_user_token_success.json")
+		_, _ = w.Write(fixture)
+	})
+	expectedToken := &ObjectStorageUserToken{
+		AccessKey: "ak_test_1234567890",
+		CreatedAt: mustTime(t, "2025-10-27T14:19:56+01:00"),
+		ID:        "000000000000",
+		SecretKey: "sk_test_1234567890abcdef",
+	}
+
+	actualToken, resp, err := client.ObjectStorages.CreateUserToken(ctx, "00000000-0000-0000-0000-000000000000")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, expectedToken, actualToken)
+}
+
+func TestObjectStorages_CreateUserToken_MissingData(t *testing.T) {
+	setup()
+	defer teardown()
+
+	type testCase struct {
+		responseBody string
+	}
+	tests := map[string]testCase{
+		"missing data": {
+			responseBody: `{"message":"S3 user token successfully created"}`,
+		},
+		"null data": {
+			responseBody: `{"data":null,"message":"S3 user token successfully created"}`,
+		},
+	}
+
+	var responseBody string
+	mux.HandleFunc("POST /object-storages/users/00000000-0000-0000-0000-000000000000/tokens", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			responseBody = test.responseBody
+
+			actualToken, resp, err := client.ObjectStorages.CreateUserToken(ctx, "00000000-0000-0000-0000-000000000000")
+
+			assert.Nil(t, actualToken)
+			assert.NotNil(t, resp)
+			assert.EqualError(t, err, "failed to create user token: response data is empty")
+		})
+	}
+}
