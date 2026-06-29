@@ -184,6 +184,10 @@ type ObjectStorageUserToken struct {
 	SecretKey string     `json:"secretKey,omitempty"`
 }
 
+type objectStorageUserTokenRoot struct {
+	ObjectStorageUserToken *ObjectStorageUserToken `json:"data"`
+}
+
 func (v ObjectStorageUserToken) String() string { return Stringify(v) }
 
 // CreateUserToken makes a new object storage user token.
@@ -198,13 +202,16 @@ func (s *ObjectStoragesService) CreateUserToken(ctx context.Context, objectStora
 		return nil, nil, err
 	}
 
-	token := new(ObjectStorageUserToken)
-	resp, err := s.client.Do(ctx, req, token)
+	root := new(objectStorageUserTokenRoot)
+	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
+	if root.ObjectStorageUserToken == nil {
+		return nil, resp, errors.New("failed to create user token: response data is empty")
+	}
 
-	return token, resp, nil
+	return root.ObjectStorageUserToken, resp, nil
 }
 
 // DeleteUserToken removes object storage user token identified by id.
