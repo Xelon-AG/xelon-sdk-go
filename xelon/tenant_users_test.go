@@ -211,6 +211,56 @@ func TestTenantUsers_Delete(t *testing.T) {
 	assert.NotNil(t, resp)
 }
 
+func TestTenantUsers_Restore(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("POST /tenants/tenant-1/users/restore", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+
+		body, err := io.ReadAll(r.Body)
+		assert.NoError(t, err)
+		assert.JSONEq(t, `{
+			"userIdentifier": "user-1"
+		}`, string(body))
+
+		fixture := loadFixture(t, "tenantusers_restore_user_success.json")
+		_, _ = w.Write(fixture)
+	})
+
+	resp, err := client.TenantUsers.Restore(ctx, "tenant-1", "user-1")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func TestTenantUsers_UpdatePassword(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("POST /tenants/tenant-1/users/user-1/password", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+
+		body, err := io.ReadAll(r.Body)
+		assert.NoError(t, err)
+		assert.JSONEq(t, `{
+			"password": "NewSecurePass123!",
+			"password_confirmation": "NewSecurePass123!"
+		}`, string(body))
+
+		fixture := loadFixture(t, "tenantusers_update_password_success.json")
+		_, _ = w.Write(fixture)
+	})
+
+	resp, err := client.TenantUsers.UpdatePassword(ctx, "tenant-1", "user-1", &TenantUserPasswordUpdateRequest{
+		Password:             "NewSecurePass123!",
+		PasswordConfirmation: "NewSecurePass123!",
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
 func TestTenantUsers_ListAvailablePermissions(t *testing.T) {
 	setup()
 	defer teardown()
@@ -385,6 +435,41 @@ func TestTenantUsers_ValidationErrors(t *testing.T) {
 				return err
 			},
 			target: ErrEmptyArgument,
+		},
+		"restore empty tenant id": {
+			request: func() error {
+				_, err := client.TenantUsers.Restore(ctx, "", "user-1")
+				return err
+			},
+			target: ErrEmptyArgument,
+		},
+		"restore empty user id": {
+			request: func() error {
+				_, err := client.TenantUsers.Restore(ctx, "tenant-1", "")
+				return err
+			},
+			target: ErrEmptyArgument,
+		},
+		"update password empty tenant id": {
+			request: func() error {
+				_, err := client.TenantUsers.UpdatePassword(ctx, "", "user-1", &TenantUserPasswordUpdateRequest{})
+				return err
+			},
+			target: ErrEmptyArgument,
+		},
+		"update password empty user id": {
+			request: func() error {
+				_, err := client.TenantUsers.UpdatePassword(ctx, "tenant-1", "", &TenantUserPasswordUpdateRequest{})
+				return err
+			},
+			target: ErrEmptyArgument,
+		},
+		"update password nil payload": {
+			request: func() error {
+				_, err := client.TenantUsers.UpdatePassword(ctx, "tenant-1", "user-1", nil)
+				return err
+			},
+			target: ErrEmptyPayloadNotAllowed,
 		},
 		"list available permissions empty tenant id": {
 			request: func() error {

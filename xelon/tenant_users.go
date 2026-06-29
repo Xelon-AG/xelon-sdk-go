@@ -55,6 +55,11 @@ type TenantUserUpdateRequest struct {
 	Surname       string `json:"surname"`
 }
 
+type TenantUserPasswordUpdateRequest struct {
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"password_confirmation"`
+}
+
 // TenantUserListOptions specifies the optional parameters to the TenantUsersService.List.
 type TenantUserListOptions struct {
 	Search string `url:"search,omitempty"`
@@ -113,7 +118,7 @@ func (s *TenantUsersService) Get(ctx context.Context, tenantID, userID string) (
 		return nil, nil, fmt.Errorf("user id: %w", ErrEmptyArgument)
 	}
 
-	path := fmt.Sprintf("%v/%v", fmt.Sprintf(tenantUsersBasePath, tenantID), userID)
+	path := fmt.Sprintf(tenantUsersBasePath+"/%s", tenantID, userID)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -169,7 +174,7 @@ func (s *TenantUsersService) Update(ctx context.Context, tenantID, userID string
 		return nil, nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
 	}
 
-	path := fmt.Sprintf("%v/%v", fmt.Sprintf(tenantUsersBasePath, tenantID), userID)
+	path := fmt.Sprintf(tenantUsersBasePath+"/%s", tenantID, userID)
 	req, err := s.client.NewRequest(http.MethodPut, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
@@ -196,8 +201,52 @@ func (s *TenantUsersService) Delete(ctx context.Context, tenantID, userID string
 		return nil, fmt.Errorf("user id: %w", ErrEmptyArgument)
 	}
 
-	path := fmt.Sprintf("%v/%v", fmt.Sprintf(tenantUsersBasePath, tenantID), userID)
+	path := fmt.Sprintf(tenantUsersBasePath+"/%s", tenantID, userID)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// Restore restores a previously deleted tenant user.
+func (s *TenantUsersService) Restore(ctx context.Context, tenantID, userID string) (*Response, error) {
+	if tenantID == "" {
+		return nil, fmt.Errorf("tenant id: %w", ErrEmptyArgument)
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("user id: %w", ErrEmptyArgument)
+	}
+
+	restoreRequest := struct {
+		UserID string `json:"userIdentifier"`
+	}{
+		UserID: userID,
+	}
+	path := fmt.Sprintf(tenantUsersBasePath+"/restore", tenantID)
+	req, err := s.client.NewRequest(http.MethodPost, path, restoreRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// UpdatePassword updates a tenant user's password.
+func (s *TenantUsersService) UpdatePassword(ctx context.Context, tenantID, userID string, updateRequest *TenantUserPasswordUpdateRequest) (*Response, error) {
+	if tenantID == "" {
+		return nil, fmt.Errorf("tenant id: %w", ErrEmptyArgument)
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("user id: %w", ErrEmptyArgument)
+	}
+	if updateRequest == nil {
+		return nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
+	}
+
+	path := fmt.Sprintf(tenantUsersBasePath+"/%s/password", tenantID, userID)
+	req, err := s.client.NewRequest(http.MethodPost, path, updateRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +275,7 @@ func (s *TenantUsersService) ListAvailablePermissions(ctx context.Context, tenan
 		return nil, nil, fmt.Errorf("tenant id: %w", ErrEmptyArgument)
 	}
 
-	path := fmt.Sprintf("%v/permissions", fmt.Sprintf(tenantUsersBasePath, tenantID))
+	path := fmt.Sprintf(tenantUsersBasePath+"/permissions", tenantID)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
@@ -253,7 +302,7 @@ func (s *TenantUsersService) UpdatePermissions(ctx context.Context, tenantID, us
 		return nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
 	}
 
-	path := fmt.Sprintf("%v/%v/permissions", fmt.Sprintf(tenantUsersBasePath, tenantID), userID)
+	path := fmt.Sprintf(tenantUsersBasePath+"/%s/permissions", tenantID, userID)
 	req, err := s.client.NewRequest(http.MethodPost, path, updateRequest)
 	if err != nil {
 		return nil, err
