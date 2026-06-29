@@ -53,6 +53,7 @@ type Client struct {
 	SSHKeys              *SSHKeysService
 	Templates            *TemplatesService
 	Tenants              *TenantsService
+	TenantUsers          *TenantUsersService
 }
 
 type service struct {
@@ -156,6 +157,7 @@ func NewClient(token string, opts ...ClientOption) *Client {
 	c.SSHKeys = (*SSHKeysService)(&c.common)
 	c.Templates = (*TemplatesService)(&c.common)
 	c.Tenants = (*TenantsService)(&c.common)
+	c.TenantUsers = (*TenantUsersService)(&c.common)
 
 	return c
 }
