@@ -1,0 +1,26 @@
+{
+  "data": {
+    "identifier": "user-1",
+    "name": "John",
+    "surname": "Doe",
+    "email": "john.doe@example.com",
+    "jobTitle": "developer",
+    "tenantIdentifier": "tenant-1",
+    "roles": [
+      {
+        "id": 1,
+        "name": "hq_organization_admin",
+        "friendlyName": "Organization Admin",
+        "type": "organization"
+      }
+    ],
+    "permissions": [
+      {
+        "id": 75,
+        "name": "allow_view_virtual_machines",
+        "friendlyName": "Allow view virtual machines",
+        "type": "virtual_machine"
+      }
+    ]
+  }
+}

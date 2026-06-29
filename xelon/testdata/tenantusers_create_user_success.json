@@ -1,0 +1,11 @@
+{
+  "data": {
+    "identifier": "user-1",
+    "name": "John",
+    "surname": "Doe",
+    "email": "john.doe@example.com",
+    "jobTitle": "developer",
+    "tenantIdentifier": "tenant-1"
+  },
+  "message": "User successfully added."
+}

@@ -1,0 +1,8 @@
+[
+  {
+    "id": 1,
+    "name": "allow_view_virtual_machines",
+    "friendlyName": "View Virtual Machines",
+    "type": "virtual_machines"
+  }
+]
