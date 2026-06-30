@@ -19,10 +19,12 @@ func TestDomains_ListZones(t *testing.T) {
 		_, _ = w.Write(fixture)
 	})
 	expectedZones := []DNSZone{{
+		CreatedAt: mustTime(t, "2024-01-01T12:00:00Z"),
 		ID:        "dns-zone-1",
 		Name:      "example.com",
 		OwnerName: "test-tenant",
 	}, {
+		CreatedAt: mustTime(t, "2024-01-02T12:00:00Z"),
 		ID:        "dns-zone-2",
 		Name:      "example.net",
 		OwnerName: "test-tenant",
@@ -53,6 +55,7 @@ func TestDomains_GetZone(t *testing.T) {
 		_, _ = w.Write(fixture)
 	})
 	expectedZone := &DNSZone{
+		CreatedAt: mustTime(t, "2024-01-01T12:00:00Z"),
 		ID:        "dns-zone-1",
 		Name:      "example.com",
 		OwnerName: "test-tenant",
@@ -81,6 +84,7 @@ func TestDomains_CreateZone(t *testing.T) {
 		_, _ = w.Write(fixture)
 	})
 	expectedZone := &DNSZone{
+		CreatedAt: mustTime(t, "2024-01-01T12:00:00Z"),
 		ID:        "dns-zone-1",
 		Name:      "example.com",
 		OwnerName: "test-tenant",
@@ -91,6 +95,41 @@ func TestDomains_CreateZone(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, expectedZone, actualZone)
+}
+
+func TestDomains_CreateZone_MissingData(t *testing.T) {
+	setup()
+	defer teardown()
+
+	type testCase struct {
+		responseBody string
+	}
+	tests := map[string]testCase{
+		"missing data": {
+			responseBody: `{"message":"DNS zone created successfully."}`,
+		},
+		"null data": {
+			responseBody: `{"data":null,"message":"DNS zone created successfully."}`,
+		},
+	}
+
+	var responseBody string
+	mux.HandleFunc("POST /dns", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		_, _ = w.Write([]byte(responseBody))
+	})
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			responseBody = test.responseBody
+
+			actualZone, resp, err := client.Domains.CreateZone(ctx, &DNSZoneCreateRequest{Domain: "example.com"})
+
+			assert.Nil(t, actualZone)
+			assert.NotNil(t, resp)
+			assert.EqualError(t, err, "dns zone data is empty")
+		})
+	}
 }
 
 func TestDomains_DeleteZone(t *testing.T) {

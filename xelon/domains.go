@@ -2,9 +2,11 @@ package xelon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"iter"
 	"net/http"
+	"time"
 )
 
 const dnsBasePath = "dns"
@@ -14,9 +16,10 @@ type DomainsService service
 
 // DNSZone represents a Xelon DNS zone.
 type DNSZone struct {
-	ID        string `json:"identifier,omitempty"`
-	Name      string `json:"name,omitempty"`
-	OwnerName string `json:"ownerName,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        string     `json:"identifier,omitempty"`
+	Name      string     `json:"name,omitempty"`
+	OwnerName string     `json:"ownerName,omitempty"`
 }
 
 type DNSZoneCreateRequest struct {
@@ -109,6 +112,9 @@ func (s *DomainsService) CreateZone(ctx context.Context, createRequest *DNSZoneC
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
+	}
+	if root.DNSZone == nil {
+		return nil, resp, errors.New("dns zone data is empty")
 	}
 
 	return root.DNSZone, resp, nil
