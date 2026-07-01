@@ -22,7 +22,7 @@ func Stringify(message any) string {
 
 // stringifyValue was graciously cargoculted from the go-protobuf library.
 func stringifyValue(w io.Writer, val reflect.Value) {
-	if val.Kind() == reflect.Ptr && val.IsNil() {
+	if val.Kind() == reflect.Pointer && val.IsNil() {
 		_, _ = w.Write([]byte("<nil>"))
 		return
 	}
@@ -75,7 +75,7 @@ func stringifyStruct(w io.Writer, v reflect.Value) {
 	var sep bool
 	for i := 0; i < v.NumField(); i++ {
 		fv := v.Field(i)
-		if fv.Kind() == reflect.Ptr && fv.IsNil() {
+		if fv.Kind() == reflect.Pointer && fv.IsNil() {
 			continue
 		}
 		if fv.Kind() == reflect.Slice && fv.IsNil() {
