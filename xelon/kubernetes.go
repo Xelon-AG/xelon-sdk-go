@@ -184,6 +184,21 @@ func (s *KubernetesService) Delete(ctx context.Context, kubernetesClusterID stri
 	return s.client.Do(ctx, req, nil)
 }
 
+// UpgradeHighAvailability enables high availability for the Kubernetes cluster.
+func (s *KubernetesService) UpgradeHighAvailability(ctx context.Context, kubernetesClusterID string) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, fmt.Errorf("kubernetes cluster id: %w", ErrEmptyArgument)
+	}
+
+	path := fmt.Sprintf("%v/%v/upgrade", kubernetesBasePath, kubernetesClusterID)
+	req, err := s.client.NewRequest(http.MethodPost, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
 // GetKubeconfig returns the raw Kubernetes config in YAML format.
 func (s *KubernetesService) GetKubeconfig(ctx context.Context, kubernetesClusterID string) ([]byte, *Response, error) {
 	if kubernetesClusterID == "" {
