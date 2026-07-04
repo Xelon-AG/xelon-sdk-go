@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "identifier": "zone1.4711.1",
+      "name": "test-bucket-0"
+    }
+  ],
+  "meta": {
+    "total": 2,
+    "lastPage": 2,
+    "perPage": 1,
+    "currentPage": 1,
+    "from": 1,
+    "to": 1
+  }
+}
