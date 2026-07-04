@@ -1,0 +1,50 @@
+{
+  "data": [
+    {
+      "identifier": "zone1.4711.1",
+      "name": "test-bucket-0",
+      "createdAt": "2025-10-27T14:19:56+01:00",
+      "zoneGroup": "Aargau",
+      "isReplicated": true,
+      "s3UserName": "test-user-0",
+      "s3UserIdentifier": "00000000-0000-0000-0000-000000000000",
+      "tenant": {
+        "identifier": "000000000",
+        "name": "test-tenant-0"
+      },
+      "isObjectLock": false,
+      "isVersioning": true,
+      "s3endpoints": [
+        "https:\/\/ch1-s3.xelon.io"
+      ],
+      "isWithRestrictedIps": true
+    },
+    {
+      "identifier": "zone2.4711.2",
+      "name": "test-bucket-1",
+      "createdAt": "2025-10-29T14:19:56+01:00",
+      "zoneGroup": "Zurich",
+      "isReplicated": false,
+      "s3UserName": "test-user-1",
+      "s3UserIdentifier": "11111111-1111-1111-1111-111111111111",
+      "tenant": {
+        "identifier": "111111111",
+        "name": "test-tenant-1"
+      },
+      "isObjectLock": true,
+      "isVersioning": false,
+      "s3endpoints": [
+        "https:\/\/zh1-s3.xelon.io"
+      ],
+      "isWithRestrictedIps": false
+    }
+  ],
+  "meta": {
+    "total": 43,
+    "lastPage": 9,
+    "perPage": 5,
+    "currentPage": 1,
+    "from": 1,
+    "to": 5
+  }
+}
