@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestObjectStorages_ListUsers(t *testing.T) {
@@ -359,7 +360,7 @@ func TestObjectStorages_GetBucket(t *testing.T) {
 
 	actualBucket, resp, err := client.ObjectStorages.GetBucket(ctx, "test-bucket-0", "00000000-0000-0000-0000-000000000000")
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, expectedBucket, actualBucket)
 }

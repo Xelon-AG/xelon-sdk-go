@@ -345,16 +345,16 @@ func (s *ObjectStoragesService) GetBucket(ctx context.Context, bucketName, objec
 		return nil, nil, err
 	}
 
-	bucket := new(ObjectStorageBucket)
-	resp, err := s.client.Do(ctx, req, bucket)
+	root := new(objectStorageBucketRoot)
+	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
-	if bucket.ID == "" && bucket.Name == "" {
+	if root.ObjectStorageBucket == nil {
 		return nil, resp, errors.New("object storage bucket data is empty")
 	}
 
-	return bucket, resp, nil
+	return root.ObjectStorageBucket, resp, nil
 }
 
 // CreateBucket makes a new object storage bucket with given payload.
