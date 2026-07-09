@@ -13,6 +13,7 @@
         "name": "test-tenant-0"
       },
       "isObjectLock": false,
+      "retentionPeriodDays": null,
       "isVersioning": true,
       "s3endpoints": [
         "https:\/\/ch1-s3.xelon.io"
@@ -32,6 +33,7 @@
         "name": "test-tenant-1"
       },
       "isObjectLock": true,
+      "retentionPeriodDays": 90,
       "isVersioning": false,
       "s3endpoints": [
         "https:\/\/zh1-s3.xelon.io"
