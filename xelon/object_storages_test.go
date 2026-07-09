@@ -250,6 +250,7 @@ func TestObjectStorages_ListBuckets(t *testing.T) {
 		IPRestrictionsEnabled:    true,
 		Name:                     "test-bucket-0",
 		ObjectLockEnabled:        false,
+		ObjectLockRetentionDays:  0,
 		ObjectStorageUserID:      "00000000-0000-0000-0000-000000000000",
 		ObjectStorageUserName:    "test-user-0",
 		RegionName:               "Aargau",
@@ -263,6 +264,7 @@ func TestObjectStorages_ListBuckets(t *testing.T) {
 		IPRestrictionsEnabled:    false,
 		Name:                     "test-bucket-1",
 		ObjectLockEnabled:        true,
+		ObjectLockRetentionDays:  90,
 		ObjectStorageUserID:      "11111111-1111-1111-1111-111111111111",
 		ObjectStorageUserName:    "test-user-1",
 		RegionName:               "Zurich",
@@ -345,6 +347,7 @@ func TestObjectStorages_GetBucket(t *testing.T) {
 		IPRestrictionsEnabled:    true,
 		Name:                     "test-bucket-0",
 		ObjectLockEnabled:        false,
+		ObjectLockRetentionDays:  0,
 		ObjectStorageUserID:      "00000000-0000-0000-0000-000000000000",
 		ObjectStorageUserName:    "test-user-0",
 		RegionName:               "Aargau",
@@ -403,6 +406,7 @@ func TestObjectStorages_CreateBucket(t *testing.T) {
 		IPRestrictionsEnabled:    false,
 		Name:                     "test-bucket-0",
 		ObjectLockEnabled:        false,
+		ObjectLockRetentionDays:  30,
 		ObjectStorageUserID:      "00000000-0000-0000-0000-000000000000",
 		ObjectStorageUserName:    "test-user-0",
 		RegionName:               "Aargau",
@@ -423,6 +427,22 @@ func TestObjectStorages_CreateBucket(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, expectedBucket, actualBucket)
+}
+
+func TestObjectStorages_CreateBucket_ZeroObjectLockRetentionDaysOmitted(t *testing.T) {
+	actualRequest, err := json.Marshal(ObjectStorageBucketCreateRequest{
+		Name:                    "test-bucket-0",
+		ObjectLockEnabled:       true,
+		ObjectLockRetentionDays: 0,
+		ObjectStorageUserID:     "00000000-0000-0000-0000-000000000000",
+		VersioningEnabled:       true,
+	})
+	assert.NoError(t, err)
+
+	var payload map[string]any
+	err = json.Unmarshal(actualRequest, &payload)
+	assert.NoError(t, err)
+	assert.NotContains(t, payload, "retentionPeriodDays")
 }
 
 func TestObjectStorages_CreateBucket_MissingData(t *testing.T) {

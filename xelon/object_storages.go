@@ -232,12 +232,14 @@ func (s *ObjectStoragesService) DeleteUserToken(ctx context.Context, objectStora
 	return s.client.Do(ctx, req, nil)
 }
 
+// ObjectStorageBucket represents a Xelon bucket for S3-compatible object storage.
 type ObjectStorageBucket struct {
 	CreatedAt                *time.Time `json:"createdAt,omitempty"`
 	ID                       string     `json:"identifier"`
 	IPRestrictionsEnabled    bool       `json:"isWithRestrictedIps,omitempty"`
 	Name                     string     `json:"name,omitempty"`
 	ObjectLockEnabled        bool       `json:"isObjectLock,omitempty"`
+	ObjectLockRetentionDays  int        `json:"retentionPeriodDays,omitempty"`
 	ObjectStorageUserID      string     `json:"s3UserIdentifier,omitempty"`
 	ObjectStorageUserName    string     `json:"s3UserName,omitempty"`
 	RegionName               string     `json:"zoneGroup,omitempty"`
