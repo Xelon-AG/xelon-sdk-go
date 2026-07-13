@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTenantUsers_List(t *testing.T) {
@@ -38,8 +39,8 @@ func TestTenantUsers_List(t *testing.T) {
 
 	actualUsers, resp, err := client.TenantUsers.List(ctx, "tenant-1", &TenantUserListOptions{Search: "john"})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 	assert.Equal(t, expectedUsers, actualUsers)
 	assert.Equal(t, &Meta{
 		Total:    3,
@@ -60,11 +61,16 @@ func TestTenantUsers_Get(t *testing.T) {
 		fixture := loadFixture(t, "tenantusers_get_user_success.json")
 		_, _ = w.Write(fixture)
 	})
-	expectedUser := &TenantUser{
-		Email:    "john.doe@example.com",
-		ID:       "user-1",
-		JobTitle: "developer",
-		Name:     "John",
+	expectedUser := &TenantUserWithDetails{
+		TenantUser: TenantUser{
+			Email:    "john.doe@example.com",
+			ID:       "user-1",
+			JobTitle: "developer",
+			Name:     "John",
+			Surname:  "Doe",
+			TenantID: "tenant-1",
+		},
+		IsActive: true,
 		Permissions: []TenantUserPermission{{
 			DisplayName: "Allow view virtual machines",
 			ID:          75,
@@ -77,13 +83,51 @@ func TestTenantUsers_Get(t *testing.T) {
 			Name:        "hq_organization_admin",
 			Type:        "organization",
 		}},
-		Surname:  "Doe",
-		TenantID: "tenant-1",
 	}
 
 	actualUser, resp, err := client.TenantUsers.Get(ctx, "tenant-1", "user-1")
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, expectedUser, actualUser)
+}
+
+func TestTenantUsers_Get_SoftDeletedUser(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("GET /tenants/tenant-1/users/user-2", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		fixture := loadFixture(t, "tenantusers_get_soft_deleted_user_success.json")
+		_, _ = w.Write(fixture)
+	})
+	expectedUser := &TenantUserWithDetails{
+		TenantUser: TenantUser{
+			Email:    "jane.doe@example.com",
+			ID:       "user-2",
+			JobTitle: "developer",
+			Name:     "Jane",
+			Surname:  "Doe",
+			TenantID: "tenant-1",
+		},
+		IsActive: false,
+		Permissions: []TenantUserPermission{{
+			DisplayName: "Allow manage users",
+			ID:          76,
+			Name:        "allow_manage_users",
+			Type:        "users",
+		}},
+		Roles: []TenantUserRole{{
+			DisplayName: "Organization Member",
+			ID:          2,
+			Name:        "hq_organization_member",
+			Type:        "organization",
+		}},
+	}
+
+	actualUser, resp, err := client.TenantUsers.Get(ctx, "tenant-1", "user-2")
+
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, expectedUser, actualUser)
 }
@@ -319,20 +363,20 @@ func TestTenantUsers_MissingData(t *testing.T) {
 	defer teardown()
 
 	tests := map[string]struct {
-		request func() (*TenantUser, *Response, error)
+		request func() (any, *Response, error)
 	}{
 		"get": {
-			request: func() (*TenantUser, *Response, error) {
+			request: func() (any, *Response, error) {
 				return client.TenantUsers.Get(ctx, "tenant-1", "user-1")
 			},
 		},
 		"create": {
-			request: func() (*TenantUser, *Response, error) {
+			request: func() (any, *Response, error) {
 				return client.TenantUsers.Create(ctx, "tenant-1", &TenantUserCreateRequest{})
 			},
 		},
 		"update": {
-			request: func() (*TenantUser, *Response, error) {
+			request: func() (any, *Response, error) {
 				return client.TenantUsers.Update(ctx, "tenant-1", "user-1", &TenantUserUpdateRequest{})
 			},
 		},
@@ -360,153 +404,100 @@ func TestTenantUsers_MissingData(t *testing.T) {
 }
 
 func TestTenantUsers_ValidationErrors(t *testing.T) {
-	client := NewClient("auth-token")
-
 	tests := map[string]struct {
-		request func() error
-		target  error
+		err    error
+		target error
 	}{
 		"list empty tenant id": {
-			request: func() error {
-				_, _, err := client.TenantUsers.List(ctx, "", nil)
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.List(ctx, "", nil)),
 			target: ErrEmptyArgument,
 		},
 		"get empty tenant id": {
-			request: func() error {
-				_, _, err := client.TenantUsers.Get(ctx, "", "user-1")
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.Get(ctx, "", "user-1")),
 			target: ErrEmptyArgument,
 		},
 		"get empty user id": {
-			request: func() error {
-				_, _, err := client.TenantUsers.Get(ctx, "tenant-1", "")
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.Get(ctx, "tenant-1", "")),
 			target: ErrEmptyArgument,
 		},
 		"create empty tenant id": {
-			request: func() error {
-				_, _, err := client.TenantUsers.Create(ctx, "", &TenantUserCreateRequest{})
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.Create(ctx, "", &TenantUserCreateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"create nil payload": {
-			request: func() error {
-				_, _, err := client.TenantUsers.Create(ctx, "tenant-1", nil)
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.Create(ctx, "tenant-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"update empty tenant id": {
-			request: func() error {
-				_, _, err := client.TenantUsers.Update(ctx, "", "user-1", &TenantUserUpdateRequest{})
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.Update(ctx, "", "user-1", &TenantUserUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update empty user id": {
-			request: func() error {
-				_, _, err := client.TenantUsers.Update(ctx, "tenant-1", "", &TenantUserUpdateRequest{})
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.Update(ctx, "tenant-1", "", &TenantUserUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update nil payload": {
-			request: func() error {
-				_, _, err := client.TenantUsers.Update(ctx, "tenant-1", "user-1", nil)
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.Update(ctx, "tenant-1", "user-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"delete empty tenant id": {
-			request: func() error {
-				_, err := client.TenantUsers.Delete(ctx, "", "user-1")
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.Delete(ctx, "", "user-1")),
 			target: ErrEmptyArgument,
 		},
 		"delete empty user id": {
-			request: func() error {
-				_, err := client.TenantUsers.Delete(ctx, "tenant-1", "")
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.Delete(ctx, "tenant-1", "")),
 			target: ErrEmptyArgument,
 		},
 		"restore empty tenant id": {
-			request: func() error {
-				_, err := client.TenantUsers.Restore(ctx, "", "user-1")
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.Restore(ctx, "", "user-1")),
 			target: ErrEmptyArgument,
 		},
 		"restore empty user id": {
-			request: func() error {
-				_, err := client.TenantUsers.Restore(ctx, "tenant-1", "")
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.Restore(ctx, "tenant-1", "")),
 			target: ErrEmptyArgument,
 		},
 		"update password empty tenant id": {
-			request: func() error {
-				_, err := client.TenantUsers.UpdatePassword(ctx, "", "user-1", &TenantUserPasswordUpdateRequest{})
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePassword(ctx, "", "user-1", &TenantUserPasswordUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update password empty user id": {
-			request: func() error {
-				_, err := client.TenantUsers.UpdatePassword(ctx, "tenant-1", "", &TenantUserPasswordUpdateRequest{})
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePassword(ctx, "tenant-1", "", &TenantUserPasswordUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update password nil payload": {
-			request: func() error {
-				_, err := client.TenantUsers.UpdatePassword(ctx, "tenant-1", "user-1", nil)
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePassword(ctx, "tenant-1", "user-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"list available permissions empty tenant id": {
-			request: func() error {
-				_, _, err := client.TenantUsers.ListAvailablePermissions(ctx, "")
-				return err
-			},
+			err:    errorFromTenantUsersResult(client.TenantUsers.ListAvailablePermissions(ctx, "")),
 			target: ErrEmptyArgument,
 		},
 		"update permissions empty tenant id": {
-			request: func() error {
-				_, err := client.TenantUsers.UpdatePermissions(ctx, "", "user-1", &TenantUserPermissionsUpdateRequest{})
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePermissions(ctx, "", "user-1", &TenantUserPermissionsUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update permissions empty user id": {
-			request: func() error {
-				_, err := client.TenantUsers.UpdatePermissions(ctx, "tenant-1", "", &TenantUserPermissionsUpdateRequest{})
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePermissions(ctx, "tenant-1", "", &TenantUserPermissionsUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update permissions nil payload": {
-			request: func() error {
-				_, err := client.TenantUsers.UpdatePermissions(ctx, "tenant-1", "user-1", nil)
-				return err
-			},
+			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePermissions(ctx, "tenant-1", "user-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := test.request()
-
-			assert.Error(t, err)
-			assert.True(t, errors.Is(err, test.target))
+			assert.Error(t, test.err)
+			assert.True(t, errors.Is(test.err, test.target))
 		})
 	}
+}
+
+func errorFromTenantUsersResult[T any](_ T, _ *Response, err error) error {
+	return err
+}
+
+func errorFromTenantUsersResponse(_ *Response, err error) error {
+	return err
 }
