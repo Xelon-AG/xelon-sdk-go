@@ -6,6 +6,7 @@
     "email": "john.doe@example.com",
     "jobTitle": "developer",
     "tenantIdentifier": "tenant-1",
+    "isActive": true,
     "roles": [
       {
         "id": 1,

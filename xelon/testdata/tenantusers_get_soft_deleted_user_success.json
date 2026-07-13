@@ -1,0 +1,27 @@
+{
+  "data": {
+    "identifier": "user-2",
+    "name": "Jane",
+    "surname": "Doe",
+    "email": "jane.doe@example.com",
+    "jobTitle": "developer",
+    "tenantIdentifier": "tenant-1",
+    "isActive": false,
+    "roles": [
+      {
+        "id": 2,
+        "name": "hq_organization_member",
+        "friendlyName": "Organization Member",
+        "type": "organization"
+      }
+    ],
+    "permissions": [
+      {
+        "id": 76,
+        "name": "allow_manage_users",
+        "friendlyName": "Allow manage users",
+        "type": "users"
+      }
+    ]
+  }
+}

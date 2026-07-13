@@ -14,15 +14,21 @@ type TenantUsersService service
 
 // TenantUser represents a user that belongs to a Xelon tenant.
 type TenantUser struct {
-	Email       string                 `json:"email,omitempty"`
-	ID          string                 `json:"identifier,omitempty"`
-	JobTitle    string                 `json:"jobTitle,omitempty"`
-	Name        string                 `json:"name,omitempty"`
+	Email    string `json:"email,omitempty"`
+	ID       string `json:"identifier,omitempty"`
+	JobTitle string `json:"jobTitle,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Surname  string `json:"surname,omitempty"`
+	TenantID string `json:"tenantIdentifier,omitempty"`
+}
+
+// TenantUserWithDetails represents a tenant user with roles, permissions, and active state.
+type TenantUserWithDetails struct {
+	TenantUser
+
+	IsActive    bool                   `json:"isActive"`
 	Permissions []TenantUserPermission `json:"permissions,omitempty"`
-	Phone       string                 `json:"phone,omitempty"`
 	Roles       []TenantUserRole       `json:"roles,omitempty"`
-	Surname     string                 `json:"surname,omitempty"`
-	TenantID    string                 `json:"tenantIdentifier,omitempty"`
 }
 
 type TenantUserRole struct {
@@ -33,14 +39,12 @@ type TenantUserRole struct {
 }
 
 type TenantUserCreateRequest struct {
-	BusinessPhone         string   `json:"business_phone,omitempty"`
 	Email                 string   `json:"email"`
 	JobTitle              string   `json:"job_title,omitempty"`
 	Name                  string   `json:"name"`
 	Password              string   `json:"password"`
 	PasswordConfirmation  string   `json:"password_confirmation"`
 	Permissions           []string `json:"permissions,omitempty"`
-	Phone                 string   `json:"phone,omitempty"`
 	RequirePasswordChange bool     `json:"passwordShouldBeChanged"`
 	Roles                 []string `json:"roles,omitempty"`
 	SendWelcomeEmail      bool     `json:"welcomeEmail"`
@@ -48,11 +52,9 @@ type TenantUserCreateRequest struct {
 }
 
 type TenantUserUpdateRequest struct {
-	BusinessPhone string `json:"business_phone,omitempty"`
-	JobTitle      string `json:"job_title,omitempty"`
-	Name          string `json:"name"`
-	Phone         string `json:"phone,omitempty"`
-	Surname       string `json:"surname"`
+	JobTitle string `json:"job_title,omitempty"`
+	Name     string `json:"name"`
+	Surname  string `json:"surname"`
 }
 
 type TenantUserPasswordUpdateRequest struct {
@@ -72,12 +74,18 @@ type tenantUserRoot struct {
 	TenantUser *TenantUser `json:"data,omitempty"`
 }
 
+type tenantUserWithDetailsRoot struct {
+	TenantUser *TenantUserWithDetails `json:"data,omitempty"`
+}
+
 type tenantUsersRoot struct {
 	TenantUsers []TenantUser `json:"data"`
 	Meta        *Meta        `json:"meta,omitempty"`
 }
 
 func (v TenantUser) String() string { return Stringify(v) }
+
+func (v TenantUserWithDetails) String() string { return Stringify(v) }
 
 func (v TenantUserRole) String() string { return Stringify(v) }
 
@@ -109,8 +117,8 @@ func (s *TenantUsersService) List(ctx context.Context, tenantID string, opts *Te
 	return root.TenantUsers, resp, nil
 }
 
-// Get gets a tenant user by id.
-func (s *TenantUsersService) Get(ctx context.Context, tenantID, userID string) (*TenantUser, *Response, error) {
+// Get gets a tenant user by id, including detailed roles, permissions, and active state.
+func (s *TenantUsersService) Get(ctx context.Context, tenantID, userID string) (*TenantUserWithDetails, *Response, error) {
 	if tenantID == "" {
 		return nil, nil, fmt.Errorf("tenant id: %w", ErrEmptyArgument)
 	}
@@ -124,7 +132,7 @@ func (s *TenantUsersService) Get(ctx context.Context, tenantID, userID string) (
 		return nil, nil, err
 	}
 
-	root := new(tenantUserRoot)
+	root := new(tenantUserWithDetailsRoot)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
@@ -192,7 +200,7 @@ func (s *TenantUsersService) Update(ctx context.Context, tenantID, userID string
 	return root.TenantUser, resp, nil
 }
 
-// Delete deletes a tenant user by id.
+// Delete soft-deletes a tenant user by id.
 func (s *TenantUsersService) Delete(ctx context.Context, tenantID, userID string) (*Response, error) {
 	if tenantID == "" {
 		return nil, fmt.Errorf("tenant id: %w", ErrEmptyArgument)
