@@ -5,6 +5,8 @@
       "name": "John",
       "surname": "Doe",
       "email": "john.doe@example.com",
+      "phone": null,
+      "business_phone": "+12025550143",
       "jobTitle": "sysadmin_devops",
       "tenantIdentifier": "tenant-1"
     },
@@ -13,6 +15,8 @@
       "name": "Jane",
       "surname": "Doe",
       "email": "jane.doe@example.com",
+      "phone": "+12025550144",
+      "business_phone": null,
       "jobTitle": "ceo",
       "tenantIdentifier": "tenant-1"
     }

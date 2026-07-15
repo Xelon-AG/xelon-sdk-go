@@ -22,17 +22,19 @@ func TestTenantUsers_List(t *testing.T) {
 		_, _ = w.Write(fixture)
 	})
 	expectedUsers := []TenantUser{{
-		Email:    "john.doe@example.com",
-		ID:       "user-1",
-		JobTitle: "sysadmin_devops",
-		Name:     "John",
-		Surname:  "Doe",
-		TenantID: "tenant-1",
+		BusinessPhone: "+12025550143",
+		Email:         "john.doe@example.com",
+		ID:            "user-1",
+		JobTitle:      "sysadmin_devops",
+		Name:          "John",
+		Surname:       "Doe",
+		TenantID:      "tenant-1",
 	}, {
 		Email:    "jane.doe@example.com",
 		ID:       "user-2",
 		JobTitle: "ceo",
 		Name:     "Jane",
+		Phone:    "+12025550144",
 		Surname:  "Doe",
 		TenantID: "tenant-1",
 	}}
@@ -145,9 +147,11 @@ func TestTenantUsers_Create(t *testing.T) {
 			"name": "John",
 			"surname": "Doe",
 			"email": "john.doe@example.com",
+			"phone": "+12025550145",
+			"businessPhone": "+12025550146",
 			"password": "SecurePass123!",
-			"password_confirmation": "SecurePass123!",
-			"job_title": "developer",
+			"passwordConfirmation": "SecurePass123!",
+			"jobTitle": "developer",
 			"passwordShouldBeChanged": false,
 			"welcomeEmail": true,
 			"roles": ["hq_organization_admin"],
@@ -158,12 +162,14 @@ func TestTenantUsers_Create(t *testing.T) {
 		err = json.Unmarshal(body, &actualRequest)
 		assert.NoError(t, err)
 		assert.Equal(t, TenantUserCreateRequest{
+			BusinessPhone:         "+12025550146",
 			Email:                 "john.doe@example.com",
 			JobTitle:              "developer",
 			Name:                  "John",
 			Password:              "SecurePass123!",
 			PasswordConfirmation:  "SecurePass123!",
 			Permissions:           []string{"allow_view_virtual_machines"},
+			Phone:                 "+12025550145",
 			RequirePasswordChange: false,
 			Roles:                 []string{"hq_organization_admin"},
 			SendWelcomeEmail:      true,
@@ -183,19 +189,21 @@ func TestTenantUsers_Create(t *testing.T) {
 	}
 
 	actualUser, resp, err := client.TenantUsers.Create(ctx, "tenant-1", &TenantUserCreateRequest{
+		BusinessPhone:         "+12025550146",
 		Email:                 "john.doe@example.com",
 		JobTitle:              "developer",
 		Name:                  "John",
 		Password:              "SecurePass123!",
 		PasswordConfirmation:  "SecurePass123!",
 		Permissions:           []string{"allow_view_virtual_machines"},
+		Phone:                 "+12025550145",
 		RequirePasswordChange: false,
 		Roles:                 []string{"hq_organization_admin"},
 		SendWelcomeEmail:      true,
 		Surname:               "Doe",
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, expectedUser, actualUser)
 }
@@ -207,13 +215,25 @@ func TestTenantUsers_Update(t *testing.T) {
 	mux.HandleFunc("PUT /tenants/tenant-1/users/user-1", func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
 
+		body, err := io.ReadAll(r.Body)
+		assert.NoError(t, err)
+		assert.JSONEq(t, `{
+			"name": "Jane",
+			"surname": "Doe",
+			"phone": "+12025550147",
+			"businessPhone": "+12025550148",
+			"jobTitle": "developer"
+		}`, string(body))
+
 		var actualRequest TenantUserUpdateRequest
-		err := json.NewDecoder(r.Body).Decode(&actualRequest)
+		err = json.Unmarshal(body, &actualRequest)
 		assert.NoError(t, err)
 		assert.Equal(t, TenantUserUpdateRequest{
-			JobTitle: "developer",
-			Name:     "Jane",
-			Surname:  "Doe",
+			BusinessPhone: "+12025550148",
+			JobTitle:      "developer",
+			Name:          "Jane",
+			Phone:         "+12025550147",
+			Surname:       "Doe",
 		}, actualRequest)
 
 		fixture := loadFixture(t, "tenantusers_update_user_success.json")
@@ -229,12 +249,14 @@ func TestTenantUsers_Update(t *testing.T) {
 	}
 
 	actualUser, resp, err := client.TenantUsers.Update(ctx, "tenant-1", "user-1", &TenantUserUpdateRequest{
-		JobTitle: "developer",
-		Name:     "Jane",
-		Surname:  "Doe",
+		BusinessPhone: "+12025550148",
+		JobTitle:      "developer",
+		Name:          "Jane",
+		Phone:         "+12025550147",
+		Surname:       "Doe",
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, expectedUser, actualUser)
 }

@@ -4,6 +4,8 @@
     "name": "John",
     "surname": "Doe",
     "email": "john.doe@example.com",
+    "phone": null,
+    "business_phone": null,
     "jobTitle": "developer",
     "tenantIdentifier": "tenant-1",
     "isActive": true,
