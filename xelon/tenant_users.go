@@ -14,12 +14,14 @@ type TenantUsersService service
 
 // TenantUser represents a user that belongs to a Xelon tenant.
 type TenantUser struct {
-	Email    string `json:"email,omitempty"`
-	ID       string `json:"identifier,omitempty"`
-	JobTitle string `json:"jobTitle,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Surname  string `json:"surname,omitempty"`
-	TenantID string `json:"tenantIdentifier,omitempty"`
+	BusinessPhone string `json:"business_phone,omitempty"`
+	Email         string `json:"email,omitempty"`
+	ID            string `json:"identifier,omitempty"`
+	JobTitle      string `json:"jobTitle,omitempty"`
+	Name          string `json:"name,omitempty"`
+	Phone         string `json:"phone,omitempty"`
+	Surname       string `json:"surname,omitempty"`
+	TenantID      string `json:"tenantIdentifier,omitempty"`
 }
 
 // TenantUserWithDetails represents a tenant user with roles, permissions, and active state.
@@ -39,12 +41,14 @@ type TenantUserRole struct {
 }
 
 type TenantUserCreateRequest struct {
+	BusinessPhone         string   `json:"businessPhone,omitempty"`
 	Email                 string   `json:"email"`
-	JobTitle              string   `json:"job_title,omitempty"`
+	JobTitle              string   `json:"jobTitle,omitempty"`
 	Name                  string   `json:"name"`
 	Password              string   `json:"password"`
-	PasswordConfirmation  string   `json:"password_confirmation"`
+	PasswordConfirmation  string   `json:"passwordConfirmation"`
 	Permissions           []string `json:"permissions,omitempty"`
+	Phone                 string   `json:"phone,omitempty"`
 	RequirePasswordChange bool     `json:"passwordShouldBeChanged"`
 	Roles                 []string `json:"roles,omitempty"`
 	SendWelcomeEmail      bool     `json:"welcomeEmail"`
@@ -52,9 +56,11 @@ type TenantUserCreateRequest struct {
 }
 
 type TenantUserUpdateRequest struct {
-	JobTitle string `json:"job_title,omitempty"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
+	BusinessPhone string `json:"businessPhone,omitempty"`
+	JobTitle      string `json:"jobTitle,omitempty"`
+	Name          string `json:"name"`
+	Phone         string `json:"phone,omitempty"`
+	Surname       string `json:"surname"`
 }
 
 type TenantUserPasswordUpdateRequest struct {
