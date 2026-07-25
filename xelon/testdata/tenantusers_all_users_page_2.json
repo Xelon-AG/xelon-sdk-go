@@ -1,18 +1,6 @@
 {
   "data": [
     {
-      "identifier": "user-1",
-      "name": "John",
-      "surname": "Doe",
-      "email": "john.doe@example.com",
-      "phone": null,
-      "businessPhone": "+12025550143",
-      "jobTitle": "sysadmin_devops",
-      "tenantIdentifier": "tenant-1",
-      "isActive": true,
-      "deletedAt": null
-    },
-    {
       "identifier": "user-2",
       "name": "Jane",
       "surname": "Doe",
@@ -26,11 +14,11 @@
     }
   ],
   "meta": {
-    "total": 3,
+    "total": 2,
     "lastPage": 2,
-    "perPage": 2,
-    "currentPage": 1,
-    "from": 1,
+    "perPage": 1,
+    "currentPage": 2,
+    "from": 2,
     "to": 2
   }
 }

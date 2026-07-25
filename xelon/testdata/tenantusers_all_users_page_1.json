@@ -11,26 +11,14 @@
       "tenantIdentifier": "tenant-1",
       "isActive": true,
       "deletedAt": null
-    },
-    {
-      "identifier": "user-2",
-      "name": "Jane",
-      "surname": "Doe",
-      "email": "jane.doe@example.com",
-      "phone": "+12025550144",
-      "businessPhone": null,
-      "jobTitle": "ceo",
-      "tenantIdentifier": "tenant-1",
-      "isActive": false,
-      "deletedAt": "2026-07-17T00:10:56+02:00"
     }
   ],
   "meta": {
-    "total": 3,
+    "total": 2,
     "lastPage": 2,
-    "perPage": 2,
+    "perPage": 1,
     "currentPage": 1,
     "from": 1,
-    "to": 2
+    "to": 1
   }
 }
