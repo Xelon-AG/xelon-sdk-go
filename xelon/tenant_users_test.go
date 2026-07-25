@@ -24,19 +24,22 @@ func TestTenantUsers_List(t *testing.T) {
 	expectedUsers := []TenantUser{{
 		BusinessPhone: "+12025550143",
 		Email:         "john.doe@example.com",
+		FirstName:     "John",
 		ID:            "user-1",
+		IsActive:      true,
 		JobTitle:      "sysadmin_devops",
-		Name:          "John",
-		Surname:       "Doe",
+		LastName:      "Doe",
 		TenantID:      "tenant-1",
 	}, {
-		Email:    "jane.doe@example.com",
-		ID:       "user-2",
-		JobTitle: "ceo",
-		Name:     "Jane",
-		Phone:    "+12025550144",
-		Surname:  "Doe",
-		TenantID: "tenant-1",
+		DeletedAt: mustTime(t, "2026-07-17T00:10:56+02:00"),
+		Email:     "jane.doe@example.com",
+		FirstName: "Jane",
+		ID:        "user-2",
+		IsActive:  false,
+		JobTitle:  "ceo",
+		LastName:  "Doe",
+		Phone:     "+12025550144",
+		TenantID:  "tenant-1",
 	}}
 
 	actualUsers, resp, err := client.TenantUsers.List(ctx, "tenant-1", &TenantUserListOptions{Search: "john"})
@@ -54,6 +57,56 @@ func TestTenantUsers_List(t *testing.T) {
 	}, resp.Meta)
 }
 
+func TestTenantUsers_All(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("GET /tenants/tenant-1/users", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "1", r.URL.Query().Get("perPage"))
+
+		switch r.URL.Query().Get("page") {
+		case "1":
+			fixture := loadFixture(t, "tenantusers_all_users_page_1.json")
+			_, _ = w.Write(fixture)
+		case "2":
+			fixture := loadFixture(t, "tenantusers_all_users_page_2.json")
+			_, _ = w.Write(fixture)
+		default:
+			t.Fatalf("unexpected page %q", r.URL.Query().Get("page"))
+		}
+	})
+
+	users, errf := client.TenantUsers.All(ctx, "tenant-1", &ListOptions{PerPage: 1})
+
+	var actualUsers []TenantUser
+	for user := range users {
+		actualUsers = append(actualUsers, user)
+	}
+
+	assert.NoError(t, errf())
+	assert.Equal(t, []TenantUser{{
+		BusinessPhone: "+12025550143",
+		Email:         "john.doe@example.com",
+		FirstName:     "John",
+		ID:            "user-1",
+		IsActive:      true,
+		JobTitle:      "sysadmin_devops",
+		LastName:      "Doe",
+		TenantID:      "tenant-1",
+	}, {
+		DeletedAt: mustTime(t, "2026-07-17T00:10:56+02:00"),
+		Email:     "jane.doe@example.com",
+		FirstName: "Jane",
+		ID:        "user-2",
+		IsActive:  false,
+		JobTitle:  "ceo",
+		LastName:  "Doe",
+		Phone:     "+12025550144",
+		TenantID:  "tenant-1",
+	}}, actualUsers)
+}
+
 func TestTenantUsers_Get(t *testing.T) {
 	setup()
 	defer teardown()
@@ -65,14 +118,14 @@ func TestTenantUsers_Get(t *testing.T) {
 	})
 	expectedUser := &TenantUserWithDetails{
 		TenantUser: TenantUser{
-			Email:    "john.doe@example.com",
-			ID:       "user-1",
-			JobTitle: "developer",
-			Name:     "John",
-			Surname:  "Doe",
-			TenantID: "tenant-1",
+			Email:     "john.doe@example.com",
+			FirstName: "John",
+			ID:        "user-1",
+			IsActive:  true,
+			JobTitle:  "developer",
+			LastName:  "Doe",
+			TenantID:  "tenant-1",
 		},
-		IsActive: true,
 		Permissions: []TenantUserPermission{{
 			DisplayName: "Allow view virtual machines",
 			ID:          75,
@@ -105,14 +158,14 @@ func TestTenantUsers_Get_SoftDeletedUser(t *testing.T) {
 	})
 	expectedUser := &TenantUserWithDetails{
 		TenantUser: TenantUser{
-			Email:    "jane.doe@example.com",
-			ID:       "user-2",
-			JobTitle: "developer",
-			Name:     "Jane",
-			Surname:  "Doe",
-			TenantID: "tenant-1",
+			Email:     "jane.doe@example.com",
+			FirstName: "Jane",
+			ID:        "user-2",
+			IsActive:  false,
+			JobTitle:  "developer",
+			LastName:  "Doe",
+			TenantID:  "tenant-1",
 		},
-		IsActive: false,
 		Permissions: []TenantUserPermission{{
 			DisplayName: "Allow manage users",
 			ID:          76,
@@ -164,8 +217,9 @@ func TestTenantUsers_Create(t *testing.T) {
 		assert.Equal(t, TenantUserCreateRequest{
 			BusinessPhone:         "+12025550146",
 			Email:                 "john.doe@example.com",
+			FirstName:             "John",
 			JobTitle:              "developer",
-			Name:                  "John",
+			LastName:              "Doe",
 			Password:              "SecurePass123!",
 			PasswordConfirmation:  "SecurePass123!",
 			Permissions:           []string{"allow_view_virtual_machines"},
@@ -173,26 +227,26 @@ func TestTenantUsers_Create(t *testing.T) {
 			RequirePasswordChange: false,
 			Roles:                 []string{"hq_organization_admin"},
 			SendWelcomeEmail:      true,
-			Surname:               "Doe",
 		}, actualRequest)
 
 		fixture := loadFixture(t, "tenantusers_create_user_success.json")
 		_, _ = w.Write(fixture)
 	})
 	expectedUser := &TenantUser{
-		Email:    "john.doe@example.com",
-		ID:       "user-1",
-		JobTitle: "developer",
-		Name:     "John",
-		Surname:  "Doe",
-		TenantID: "tenant-1",
+		Email:     "john.doe@example.com",
+		FirstName: "John",
+		ID:        "user-1",
+		JobTitle:  "developer",
+		LastName:  "Doe",
+		TenantID:  "tenant-1",
 	}
 
 	actualUser, resp, err := client.TenantUsers.Create(ctx, "tenant-1", &TenantUserCreateRequest{
 		BusinessPhone:         "+12025550146",
 		Email:                 "john.doe@example.com",
+		FirstName:             "John",
 		JobTitle:              "developer",
-		Name:                  "John",
+		LastName:              "Doe",
 		Password:              "SecurePass123!",
 		PasswordConfirmation:  "SecurePass123!",
 		Permissions:           []string{"allow_view_virtual_machines"},
@@ -200,7 +254,6 @@ func TestTenantUsers_Create(t *testing.T) {
 		RequirePasswordChange: false,
 		Roles:                 []string{"hq_organization_admin"},
 		SendWelcomeEmail:      true,
-		Surname:               "Doe",
 	})
 
 	require.NoError(t, err)
@@ -230,30 +283,30 @@ func TestTenantUsers_Update(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, TenantUserUpdateRequest{
 			BusinessPhone: "+12025550148",
+			FirstName:     "Jane",
 			JobTitle:      "developer",
-			Name:          "Jane",
+			LastName:      "Doe",
 			Phone:         "+12025550147",
-			Surname:       "Doe",
 		}, actualRequest)
 
 		fixture := loadFixture(t, "tenantusers_update_user_success.json")
 		_, _ = w.Write(fixture)
 	})
 	expectedUser := &TenantUser{
-		Email:    "jane.doe@example.com",
-		ID:       "user-1",
-		JobTitle: "developer",
-		Name:     "Jane",
-		Surname:  "Doe",
-		TenantID: "tenant-1",
+		Email:     "jane.doe@example.com",
+		FirstName: "Jane",
+		ID:        "user-1",
+		JobTitle:  "developer",
+		LastName:  "Doe",
+		TenantID:  "tenant-1",
 	}
 
 	actualUser, resp, err := client.TenantUsers.Update(ctx, "tenant-1", "user-1", &TenantUserUpdateRequest{
 		BusinessPhone: "+12025550148",
+		FirstName:     "Jane",
 		JobTitle:      "developer",
-		Name:          "Jane",
+		LastName:      "Doe",
 		Phone:         "+12025550147",
-		Surname:       "Doe",
 	})
 
 	require.NoError(t, err)
@@ -432,6 +485,13 @@ func TestTenantUsers_ValidationErrors(t *testing.T) {
 	}{
 		"list empty tenant id": {
 			err:    errorFromTenantUsersResult(client.TenantUsers.List(ctx, "", nil)),
+			target: ErrEmptyArgument,
+		},
+		"all empty tenant id": {
+			err: func() error {
+				_, errf := client.TenantUsers.All(ctx, "", nil)
+				return errf()
+			}(),
 			target: ErrEmptyArgument,
 		},
 		"get empty tenant id": {

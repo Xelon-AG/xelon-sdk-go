@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"net/http"
+	"time"
 )
 
 const tenantUsersBasePath = "tenants/%s/users"
@@ -14,21 +16,22 @@ type TenantUsersService service
 
 // TenantUser represents a user that belongs to a Xelon tenant.
 type TenantUser struct {
-	BusinessPhone string `json:"business_phone,omitempty"`
-	Email         string `json:"email,omitempty"`
-	ID            string `json:"identifier,omitempty"`
-	JobTitle      string `json:"jobTitle,omitempty"`
-	Name          string `json:"name,omitempty"`
-	Phone         string `json:"phone,omitempty"`
-	Surname       string `json:"surname,omitempty"`
-	TenantID      string `json:"tenantIdentifier,omitempty"`
+	BusinessPhone string     `json:"businessPhone,omitempty"`
+	DeletedAt     *time.Time `json:"deletedAt,omitempty"`
+	Email         string     `json:"email,omitempty"`
+	FirstName     string     `json:"name,omitempty"`
+	ID            string     `json:"identifier,omitempty"`
+	IsActive      bool       `json:"isActive"`
+	JobTitle      string     `json:"jobTitle,omitempty"`
+	LastName      string     `json:"surname,omitempty"`
+	Phone         string     `json:"phone,omitempty"`
+	TenantID      string     `json:"tenantIdentifier,omitempty"`
 }
 
-// TenantUserWithDetails represents a tenant user with roles, permissions, and active state.
+// TenantUserWithDetails represents a tenant user with roles, permissions.
 type TenantUserWithDetails struct {
 	TenantUser
 
-	IsActive    bool                   `json:"isActive"`
 	Permissions []TenantUserPermission `json:"permissions,omitempty"`
 	Roles       []TenantUserRole       `json:"roles,omitempty"`
 }
@@ -43,8 +46,9 @@ type TenantUserRole struct {
 type TenantUserCreateRequest struct {
 	BusinessPhone         string   `json:"businessPhone,omitempty"`
 	Email                 string   `json:"email"`
+	FirstName             string   `json:"name"`
 	JobTitle              string   `json:"jobTitle,omitempty"`
-	Name                  string   `json:"name"`
+	LastName              string   `json:"surname"`
 	Password              string   `json:"password"`
 	PasswordConfirmation  string   `json:"passwordConfirmation"`
 	Permissions           []string `json:"permissions,omitempty"`
@@ -52,15 +56,14 @@ type TenantUserCreateRequest struct {
 	RequirePasswordChange bool     `json:"passwordShouldBeChanged"`
 	Roles                 []string `json:"roles,omitempty"`
 	SendWelcomeEmail      bool     `json:"welcomeEmail"`
-	Surname               string   `json:"surname"`
 }
 
 type TenantUserUpdateRequest struct {
 	BusinessPhone string `json:"businessPhone,omitempty"`
+	FirstName     string `json:"name"`
 	JobTitle      string `json:"jobTitle,omitempty"`
-	Name          string `json:"name"`
+	LastName      string `json:"surname"`
 	Phone         string `json:"phone,omitempty"`
-	Surname       string `json:"surname"`
 }
 
 type TenantUserPasswordUpdateRequest struct {
@@ -121,6 +124,18 @@ func (s *TenantUsersService) List(ctx context.Context, tenantID string, opts *Te
 	}
 
 	return root.TenantUsers, resp, nil
+}
+
+// All returns an iterator to paginate over all users that belong to a tenant.
+//
+// The return iterator can be used in a for...range loop to easily process all users.
+func (s *TenantUsersService) All(ctx context.Context, tenantID string, opts *ListOptions) (iter.Seq2[TenantUser, *Response], func() error) {
+	if tenantID == "" {
+		err := fmt.Errorf("tenant id: %w", ErrEmptyArgument)
+		return func(yield func(TenantUser, *Response) bool) {}, func() error { return err }
+	}
+
+	return newPaginator[TenantUser](ctx, s.client, fmt.Sprintf(tenantUsersBasePath, tenantID), opts)
 }
 
 // Get gets a tenant user by id, including detailed roles, permissions, and active state.
