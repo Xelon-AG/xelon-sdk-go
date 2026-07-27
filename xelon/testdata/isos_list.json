@@ -1,0 +1,7 @@
+{
+  "data": [
+    {"identifier":"abc123","name":"iso-1","status":true},
+    {"identifier":"def456","name":"iso-2","status":false}
+  ],
+  "meta": {"total":20,"lastPage":2,"perPage":10,"currentPage":1,"from":1,"to":10}
+}

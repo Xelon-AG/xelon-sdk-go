@@ -19,9 +19,11 @@ import (
 const (
 	libraryVersion = "1.14.4"
 
-	defaultBaseURL   = "https://hq.xelon.ch/api/v2/"
-	defaultMediaType = "application/json"
-	defaultUserAgent = "xelon-sdk-go/" + libraryVersion
+	defaultBaseURL          = "https://hq.xelon.ch/api/v2/"
+	defaultISOUploadTimeout = 2 * time.Minute
+	defaultMediaType        = "application/json"
+	defaultRequestTimeout   = 60 * time.Second
+	defaultUserAgent        = "xelon-sdk-go/" + libraryVersion
 )
 
 // A Client manages communication with the Xelon API.
@@ -30,10 +32,11 @@ type Client struct {
 	// baseURL should always be specified with a trailing slash.
 	baseURL *url.URL
 
-	httpClient *http.Client // HTTP client used to communicate with the API.
-	clientID   string       // ClientID for IP ranges.
-	token      string       // token for Xelon API.
-	userAgent  string       // User agent used when communicating with Xelon API.
+	httpClient       *http.Client // HTTP client used to communicate with the API.
+	customHTTPClient bool         // Whether the HTTP client was supplied by the caller.
+	clientID         string       // ClientID for IP ranges.
+	token            string       // token for Xelon API.
+	userAgent        string       // User agent used when communicating with Xelon API.
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
@@ -112,6 +115,7 @@ func WithClientID(clientID string) ClientOption {
 func WithHTTPClient(httpClient *http.Client) ClientOption {
 	return func(client *Client) {
 		client.httpClient = httpClient
+		client.customHTTPClient = true
 	}
 }
 
@@ -125,9 +129,8 @@ func WithUserAgent(userAgent string) ClientOption {
 // NewClient returns a new Xelon API client.
 func NewClient(token string, opts ...ClientOption) *Client {
 	baseUrl, _ := url.Parse(defaultBaseURL)
-	httpClient := &http.Client{
-		Timeout: 60 * time.Second,
-	}
+	// Method-specific fallback deadlines are applied by Client.do.
+	httpClient := &http.Client{}
 
 	c := &Client{
 		baseURL:    baseUrl,
@@ -166,6 +169,17 @@ func NewClient(token string, opts ...ClientOption) *Client {
 // relative to the BaseURL of the Client. Relative URLs should always be specified without a preceding slash.
 // If specified, the value pointed to by body is JSON encoded and included as the request body.
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+	buf := new(bytes.Buffer)
+	if body != nil {
+		if err := json.NewEncoder(buf).Encode(body); err != nil {
+			return nil, err
+		}
+	}
+
+	return c.newRequest(method, urlStr, buf, defaultMediaType)
+}
+
+func (c *Client) newRequest(method, urlStr string, body io.Reader, contentType string) (*http.Request, error) {
 	if !strings.HasSuffix(c.baseURL.Path, "/") {
 		return nil, fmt.Errorf("BaseURL must have a traling slash, but %q does not", c.baseURL)
 	}
@@ -174,15 +188,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		return nil, err
 	}
 
-	buf := new(bytes.Buffer)
-	if body != nil {
-		err = json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req, err := http.NewRequest(method, u.String(), buf)
+	req, err := http.NewRequest(method, u.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +197,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
 	}
 	req.Header.Set("Accept", defaultMediaType)
-	req.Header.Set("Content-Type", defaultMediaType)
+	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("User-Agent", c.userAgent)
 
 	if c.clientID != "" {
@@ -211,13 +217,22 @@ type Response struct {
 // Do sends an API request and returns the API response. The API response is JSON decoded and stored in
 // the value pointed to by v, or returned as an error if an API error has occurred.
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Response, error) {
-	req = req.WithContext(ctx)
+	return c.do(ctx, req, v, defaultRequestTimeout)
+}
+
+func (c *Client) do(ctx context.Context, req *http.Request, v interface{}, fallbackTimeout time.Duration) (*Response, error) {
+	requestContext, cancel := c.withFallbackTimeout(ctx, fallbackTimeout)
+	if cancel != nil {
+		defer cancel()
+	}
+
+	req = req.WithContext(requestContext)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		// if we got an error, and the context has been canceled, the context's error is more useful.
 		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
+		case <-requestContext.Done():
+			return nil, requestContext.Err()
 		default:
 		}
 
@@ -260,6 +275,14 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 	}
 
 	return response, err
+}
+
+func (c *Client) withFallbackTimeout(ctx context.Context, fallbackTimeout time.Duration) (context.Context, context.CancelFunc) {
+	if _, hasDeadline := ctx.Deadline(); hasDeadline || c.customHTTPClient {
+		return ctx, nil
+	}
+
+	return context.WithTimeout(ctx, fallbackTimeout)
 }
 
 // newResponse creates a new Response for the provided http.Response. r must be not nil.

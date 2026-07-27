@@ -1,10 +1,16 @@
 package xelon
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"strconv"
+	"time"
 )
 
 const isoBasePath = "isos"
@@ -14,14 +20,15 @@ type ISOsService service
 
 // ISO represents a Xelon custom ISO.
 type ISO struct {
-	Active      bool   `json:"active,omitempty"`
-	Category    string `json:"category,omitempty"`
-	Cloud       *Cloud `json:"cloud,omitempty"`
-	Description string `json:"description,omitempty"`
-	ID          string `json:"identifier,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Owner       string `json:"owner,omitempty"`
-	Status      bool   `json:"status,omitempty"`
+	Active      bool       `json:"active,omitempty"`
+	Category    string     `json:"category,omitempty"`
+	Cloud       *Cloud     `json:"cloud,omitempty"`
+	CreatedAt   *time.Time `json:"createdAt,omitempty"`
+	Description string     `json:"description,omitempty"`
+	ID          string     `json:"identifier,omitempty"`
+	Name        string     `json:"name,omitempty"`
+	Owner       string     `json:"owner,omitempty"`
+	Status      bool       `json:"status,omitempty"`
 }
 
 type ISOCreateRequest struct {
@@ -31,6 +38,17 @@ type ISOCreateRequest struct {
 	Name        string `json:"name"`
 	TenantID    string `json:"tenantIdentifier,omitempty"`
 	URL         string `json:"url"`
+}
+
+// ISOUploadRequest specifies a local ISO and its upload metadata.
+type ISOUploadRequest struct {
+	CategoryID  int
+	CloudID     string
+	Description string
+	File        io.Reader
+	Filename    string
+	Name        string
+	TenantID    string
 }
 
 type ISOUpdateRequest struct {
@@ -124,6 +142,65 @@ func (s *ISOsService) Create(ctx context.Context, createRequest *ISOCreateReques
 	return isoRoot.ISO, resp, nil
 }
 
+// Upload uploads a local ISO file to a cloud datastore.
+func (s *ISOsService) Upload(ctx context.Context, uploadRequest *ISOUploadRequest) (*ISO, *Response, error) {
+	if uploadRequest == nil {
+		return nil, nil, fmt.Errorf("payload: %w", ErrEmptyPayloadNotAllowed)
+	}
+	if uploadRequest.File == nil {
+		return nil, nil, fmt.Errorf("file: %w", ErrEmptyArgument)
+	}
+	if uploadRequest.Filename == "" {
+		return nil, nil, fmt.Errorf("filename: %w", ErrEmptyArgument)
+	}
+	if uploadRequest.Name == "" {
+		return nil, nil, fmt.Errorf("name: %w", ErrEmptyArgument)
+	}
+	if uploadRequest.CloudID == "" {
+		return nil, nil, fmt.Errorf("cloud id: %w", ErrEmptyArgument)
+	}
+	if uploadRequest.CategoryID <= 0 {
+		return nil, nil, fmt.Errorf("category id: %w", ErrEmptyArgument)
+	}
+	uploadContext, cancel := s.client.withFallbackTimeout(ctx, defaultISOUploadTimeout)
+	if cancel != nil {
+		defer cancel()
+	}
+	if err := uploadContext.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	if err := writeISOUploadMultipart(uploadContext, writer, uploadRequest); err != nil {
+		_ = writer.Close()
+		return nil, nil, err
+	}
+	contentType := writer.FormDataContentType()
+	if err := writer.Close(); err != nil {
+		return nil, nil, fmt.Errorf("close multipart body: %w", err)
+	}
+
+	req, err := s.client.newRequest(http.MethodPost, isoBasePath+"/upload", &body, contentType)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create upload request: %w", err)
+	}
+	if req.ContentLength <= 0 {
+		return nil, nil, errors.New("ISO upload request has no known positive content length")
+	}
+
+	root := new(isoRoot)
+	resp, err := s.client.do(uploadContext, req, root, defaultISOUploadTimeout)
+	if err != nil {
+		return nil, resp, fmt.Errorf("upload ISO: %w", err)
+	}
+	if root.ISO == nil {
+		return nil, resp, errors.New("iso data is empty")
+	}
+
+	return root.ISO, resp, nil
+}
+
 // Update changes custom ISO identified by id.
 func (s *ISOsService) Update(ctx context.Context, isoID string, updateRequest *ISOUpdateRequest) (*ISO, *Response, error) {
 	if isoID == "" {
@@ -161,4 +238,56 @@ func (s *ISOsService) Delete(ctx context.Context, isoID string) (*Response, erro
 	}
 
 	return s.client.Do(ctx, req, nil)
+}
+
+func writeISOUploadMultipart(ctx context.Context, writer *multipart.Writer, uploadRequest *ISOUploadRequest) error {
+	fields := []struct {
+		name  string
+		value string
+	}{
+		{name: "name", value: uploadRequest.Name},
+		{name: "categoryId", value: strconv.Itoa(uploadRequest.CategoryID)},
+		{name: "cloudIdentifier", value: uploadRequest.CloudID},
+	}
+	if uploadRequest.Description != "" {
+		fields = append(fields, struct {
+			name  string
+			value string
+		}{name: "description", value: uploadRequest.Description})
+	}
+	if uploadRequest.TenantID != "" {
+		fields = append(fields, struct {
+			name  string
+			value string
+		}{name: "tenantIdentifier", value: uploadRequest.TenantID})
+	}
+
+	for _, field := range fields {
+		if err := writer.WriteField(field.name, field.value); err != nil {
+			return fmt.Errorf("write multipart field %q: %w", field.name, err)
+		}
+	}
+
+	part, err := writer.CreateFormFile("file", filepath.Base(uploadRequest.Filename))
+	if err != nil {
+		return fmt.Errorf("create multipart file part: %w", err)
+	}
+	if _, err := io.Copy(part, contextReader{ctx: ctx, reader: uploadRequest.File}); err != nil {
+		return fmt.Errorf("copy ISO file: %w", err)
+	}
+
+	return nil
+}
+
+type contextReader struct {
+	ctx    context.Context
+	reader io.Reader
+}
+
+func (r contextReader) Read(p []byte) (int, error) {
+	if err := r.ctx.Err(); err != nil {
+		return 0, err
+	}
+
+	return r.reader.Read(p)
 }

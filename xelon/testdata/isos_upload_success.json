@@ -1,0 +1,18 @@
+{
+  "data": {
+    "identifier": "iso-123",
+    "category": "Windows Server 2012/2016/2019",
+    "name": "test-iso",
+    "description": null,
+    "owner": "Example Tenant",
+    "active": true,
+    "status": true,
+    "createdAt": "2026-07-27T17:58:24+02:00",
+    "cloud": {
+      "identifier": "cloud-123",
+      "name": "Example Cloud",
+      "type": "public"
+    }
+  },
+  "message": "ISO uploaded successfully."
+}

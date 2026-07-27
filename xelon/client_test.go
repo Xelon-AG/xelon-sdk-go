@@ -1,13 +1,16 @@
 package xelon
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,12 +46,12 @@ func TestClient_NewClient(t *testing.T) {
 }
 
 func TestClient_Defaults(t *testing.T) {
-	t.Skip("working on v2 endpoints")
 	client := NewClient("auth-token")
 
-	assert.Equal(t, "https://hq.xelon.ch/api/service/", client.baseURL.String())
+	assert.Equal(t, defaultBaseURL, client.baseURL.String())
 	assert.Contains(t, client.userAgent, "xelon-sdk-go/")
-	assert.Equal(t, 60*time.Second, client.httpClient.Timeout)
+	assert.Zero(t, client.httpClient.Timeout)
+	assert.False(t, client.customHTTPClient)
 }
 
 func TestClient_WithBaseURL(t *testing.T) {
@@ -76,6 +79,7 @@ func TestClient_WithHTTPClient(t *testing.T) {
 
 	assert.Equal(t, httpClient, client.httpClient)
 	assert.Equal(t, 2*time.Second, client.httpClient.Timeout)
+	assert.True(t, client.customHTTPClient)
 }
 
 func TestClient_WithUserAgent(t *testing.T) {
@@ -84,6 +88,141 @@ func TestClient_WithUserAgent(t *testing.T) {
 	)
 
 	assert.Equal(t, "custom-user-agent", client.userAgent)
+}
+
+func TestClient_NewRequest(t *testing.T) {
+	client := NewClient(
+		"auth-token",
+		WithBaseURL("https://example.test/api/v2/"),
+		WithClientID("client-id"),
+		WithUserAgent("custom-user-agent"),
+	)
+
+	req, err := client.NewRequest(http.MethodPost, "resources", struct {
+		Name string `json:"name"`
+	}{Name: "example"})
+	assert.NoError(t, err)
+
+	body, err := io.ReadAll(req.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "{\"name\":\"example\"}\n", string(body))
+	assert.Equal(t, int64(len(body)), req.ContentLength)
+	assert.Equal(t, "https://example.test/api/v2/resources", req.URL.String())
+	assert.Equal(t, "Bearer auth-token", req.Header.Get("Authorization"))
+	assert.Equal(t, defaultMediaType, req.Header.Get("Accept"))
+	assert.Equal(t, defaultMediaType, req.Header.Get("Content-Type"))
+	assert.Equal(t, "custom-user-agent", req.Header.Get("User-Agent"))
+	assert.Equal(t, "client-id", req.Header.Get("X-User-Id"))
+}
+
+func TestClient_NewRequestWithContentType(t *testing.T) {
+	client := NewClient(
+		"auth-token",
+		WithBaseURL("https://example.test/api/v2/"),
+		WithClientID("client-id"),
+		WithUserAgent("custom-user-agent"),
+	)
+	contentType := "multipart/form-data; boundary=test-boundary"
+
+	req, err := client.newRequest(
+		http.MethodPost,
+		"isos/upload",
+		bytes.NewReader([]byte("multipart body")),
+		contentType,
+	)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "Bearer auth-token", req.Header.Get("Authorization"))
+	assert.Equal(t, defaultMediaType, req.Header.Get("Accept"))
+	assert.Equal(t, contentType, req.Header.Get("Content-Type"))
+	assert.Equal(t, "custom-user-agent", req.Header.Get("User-Agent"))
+	assert.Equal(t, "client-id", req.Header.Get("X-User-Id"))
+}
+
+func TestClient_DoTimeoutPolicy(t *testing.T) {
+	t.Run("SDK-owned client uses ordinary fallback", func(t *testing.T) {
+		client := NewClient("auth-token")
+		client.httpClient.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			deadline, ok := req.Context().Deadline()
+			assert.True(t, ok)
+			assert.InDelta(t, defaultRequestTimeout.Seconds(), time.Until(deadline).Seconds(), 0.5)
+			return newTestResponse(req, http.StatusNoContent, ""), nil
+		})
+		req, err := client.NewRequest(http.MethodGet, "resources", nil)
+		assert.NoError(t, err)
+
+		_, err = client.Do(context.Background(), req, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("caller deadline is preserved", func(t *testing.T) {
+		client := NewClient("auth-token")
+		deadline := time.Now().Add(5 * time.Minute)
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
+		defer cancel()
+
+		client.httpClient.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			got, ok := req.Context().Deadline()
+			assert.True(t, ok)
+			assert.True(t, got.Equal(deadline), "deadline = %v, want %v", got, deadline)
+			return newTestResponse(req, http.StatusNoContent, ""), nil
+		})
+		req, err := client.NewRequest(http.MethodGet, "resources", nil)
+		assert.NoError(t, err)
+
+		_, err = client.Do(ctx, req, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("custom zero-timeout client suppresses fallback", func(t *testing.T) {
+		httpClient := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			_, ok := req.Context().Deadline()
+			assert.False(t, ok)
+			return newTestResponse(req, http.StatusNoContent, ""), nil
+		})}
+		client := NewClient("auth-token", WithHTTPClient(httpClient))
+		req, err := client.NewRequest(http.MethodGet, "resources", nil)
+		assert.NoError(t, err)
+
+		_, err = client.Do(context.Background(), req, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("custom client timeout remains caller-owned", func(t *testing.T) {
+		const customTimeout = 30 * time.Second
+		httpClient := &http.Client{
+			Timeout: customTimeout,
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				deadline, ok := req.Context().Deadline()
+				assert.True(t, ok)
+				assert.InDelta(t, customTimeout.Seconds(), time.Until(deadline).Seconds(), 0.5)
+				return newTestResponse(req, http.StatusNoContent, ""), nil
+			}),
+		}
+		client := NewClient("auth-token", WithHTTPClient(httpClient))
+		req, err := client.NewRequest(http.MethodGet, "resources", nil)
+		assert.NoError(t, err)
+
+		_, err = client.Do(context.Background(), req, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, customTimeout, client.httpClient.Timeout)
+	})
+
+	t.Run("already-cancelled context returns promptly", func(t *testing.T) {
+		client := NewClient("auth-token")
+		client.httpClient.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			return nil, req.Context().Err()
+		})
+		req, err := client.NewRequest(http.MethodGet, "resources", nil)
+		assert.NoError(t, err)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		started := time.Now()
+		_, err = client.Do(ctx, req, nil)
+		assert.ErrorIs(t, err, context.Canceled)
+		assert.Less(t, time.Since(started), time.Second)
+	})
 }
 
 func loadFixture(t *testing.T, fixtureName string) []byte {
@@ -106,4 +245,20 @@ func mustTime(t *testing.T, timestamp string) *time.Time {
 	}
 
 	return &ts
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func newTestResponse(req *http.Request, statusCode int, body string) *http.Response {
+	return &http.Response{
+		Body:       io.NopCloser(strings.NewReader(body)),
+		Header:     make(http.Header),
+		Request:    req,
+		Status:     fmt.Sprintf("%d %s", statusCode, http.StatusText(statusCode)),
+		StatusCode: statusCode,
+	}
 }
