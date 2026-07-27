@@ -1,7 +1,6 @@
 # Xelon SDK for Go
 
 [![Tests](https://github.com/Xelon-AG/xelon-sdk-go/actions/workflows/tests.yaml/badge.svg)](https://github.com/Xelon-AG/xelon-sdk-go/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Xelon-AG/xelon-sdk-go)](https://goreportcard.com/report/github.com/Xelon-AG/xelon-sdk-go)
 [![GoDoc](https://img.shields.io/badge/pkg.go.dev-doc-blue)](http://pkg.go.dev/github.com/Xelon-AG/xelon-sdk-go)
 
 xelon-sdk-go is the official Xelon SDK for the Go programming language.
@@ -61,6 +60,32 @@ func main() {
   sshKeys, _, err := client.SSHKeys.List(ctx)
 }
 ```
+
+Upload a small local ISO directly to a cloud datastore.
+
+```go
+file, err := os.Open("oemdrv.iso")
+if err != nil {
+  // handle error
+}
+defer file.Close()
+
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
+
+iso, _, err := client.ISOs.Upload(ctx, &xelon.ISOUploadRequest{
+  CategoryID: 1,
+  CloudID:    "cloud-123",
+  File:       file,
+  Filename:   file.Name(),
+  Name:       "oemdrv",
+})
+```
+
+ISO uploads use a two-minute SDK fallback timeout. A caller-provided context
+deadline overrides that fallback. When `WithHTTPClient` is used, the supplied
+HTTP client owns timeout policy instead. The server documents a 20 MB maximum
+for direct uploads; use URL-based `ISOs.Create` for larger installation media.
 
 ## Contributing
 
