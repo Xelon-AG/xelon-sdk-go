@@ -10,7 +10,7 @@ import (
 )
 
 func TestKubernetes_UpgradeHighAvailability(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /kubernetes/kubernetes-cluster-1/upgrade", func(w http.ResponseWriter, r *http.Request) {

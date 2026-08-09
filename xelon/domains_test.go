@@ -10,7 +10,7 @@ import (
 )
 
 func TestDomains_ListZones(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /dns", func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func TestDomains_ListZones(t *testing.T) {
 }
 
 func TestDomains_GetZone(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /dns/dns-zone-1", func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func TestDomains_GetZone(t *testing.T) {
 }
 
 func TestDomains_CreateZone(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /dns", func(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +98,7 @@ func TestDomains_CreateZone(t *testing.T) {
 }
 
 func TestDomains_CreateZone_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	type testCase struct {
@@ -133,7 +133,7 @@ func TestDomains_CreateZone_MissingData(t *testing.T) {
 }
 
 func TestDomains_DeleteZone(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("DELETE /dns/dns-zone-1", func(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +149,7 @@ func TestDomains_DeleteZone(t *testing.T) {
 }
 
 func TestDomains_GetSOA(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /dns/dns-zone-1/soa", func(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +175,7 @@ func TestDomains_GetSOA(t *testing.T) {
 }
 
 func TestDomains_UpdateSOA(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /dns/dns-zone-1/soa", func(w http.ResponseWriter, r *http.Request) {
@@ -211,7 +211,7 @@ func TestDomains_UpdateSOA(t *testing.T) {
 }
 
 func TestDomains_ListRecords(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /dns/dns-zone-1/records", func(w http.ResponseWriter, r *http.Request) {
@@ -246,7 +246,7 @@ func TestDomains_ListRecords(t *testing.T) {
 }
 
 func TestDomains_CreateRecord(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /dns/dns-zone-1/records", func(w http.ResponseWriter, r *http.Request) {
@@ -278,7 +278,7 @@ func TestDomains_CreateRecord(t *testing.T) {
 }
 
 func TestDomains_UpdateRecord(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /dns/dns-zone-1/records/244042432", func(w http.ResponseWriter, r *http.Request) {
@@ -310,7 +310,7 @@ func TestDomains_UpdateRecord(t *testing.T) {
 }
 
 func TestDomains_DeleteRecord(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("DELETE /dns/dns-zone-1/records/244042432", func(w http.ResponseWriter, r *http.Request) {
@@ -326,8 +326,7 @@ func TestDomains_DeleteRecord(t *testing.T) {
 }
 
 func TestDomains_ValidationErrors(t *testing.T) {
-	setup()
-	defer teardown()
+	c := newTestClient(t)
 
 	tests := map[string]struct {
 		err    error
@@ -335,112 +334,112 @@ func TestDomains_ValidationErrors(t *testing.T) {
 	}{
 		"get zone empty id": {
 			err: func() error {
-				_, _, err := client.Domains.GetZone(ctx, "")
+				_, _, err := c.Domains.GetZone(ctx, "")
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"create zone nil payload": {
 			err: func() error {
-				_, _, err := client.Domains.CreateZone(ctx, nil)
+				_, _, err := c.Domains.CreateZone(ctx, nil)
 				return err
 			}(),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"delete zone empty id": {
 			err: func() error {
-				_, err := client.Domains.DeleteZone(ctx, "")
+				_, err := c.Domains.DeleteZone(ctx, "")
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"get soa empty zone id": {
 			err: func() error {
-				_, _, err := client.Domains.GetSOA(ctx, "")
+				_, _, err := c.Domains.GetSOA(ctx, "")
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"update soa empty zone id": {
 			err: func() error {
-				_, err := client.Domains.UpdateSOA(ctx, "", &DNSSOAUpdateRequest{})
+				_, err := c.Domains.UpdateSOA(ctx, "", &DNSSOAUpdateRequest{})
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"update soa nil payload": {
 			err: func() error {
-				_, err := client.Domains.UpdateSOA(ctx, "dns-zone-1", nil)
+				_, err := c.Domains.UpdateSOA(ctx, "dns-zone-1", nil)
 				return err
 			}(),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"list records empty zone id": {
 			err: func() error {
-				_, _, err := client.Domains.ListRecords(ctx, "")
+				_, _, err := c.Domains.ListRecords(ctx, "")
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"create record empty zone id": {
 			err: func() error {
-				_, err := client.Domains.CreateRecord(ctx, "", &DNSRecordCreateRequest{})
+				_, err := c.Domains.CreateRecord(ctx, "", &DNSRecordCreateRequest{})
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"create record nil payload": {
 			err: func() error {
-				_, err := client.Domains.CreateRecord(ctx, "dns-zone-1", nil)
+				_, err := c.Domains.CreateRecord(ctx, "dns-zone-1", nil)
 				return err
 			}(),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"update record empty zone id": {
 			err: func() error {
-				_, err := client.Domains.UpdateRecord(ctx, "", 244042432, &DNSRecordUpdateRequest{})
+				_, err := c.Domains.UpdateRecord(ctx, "", 244042432, &DNSRecordUpdateRequest{})
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"update record empty record id": {
 			err: func() error {
-				_, err := client.Domains.UpdateRecord(ctx, "dns-zone-1", 0, &DNSRecordUpdateRequest{})
+				_, err := c.Domains.UpdateRecord(ctx, "dns-zone-1", 0, &DNSRecordUpdateRequest{})
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"update record negative record id": {
 			err: func() error {
-				_, err := client.Domains.UpdateRecord(ctx, "dns-zone-1", -1, &DNSRecordUpdateRequest{})
+				_, err := c.Domains.UpdateRecord(ctx, "dns-zone-1", -1, &DNSRecordUpdateRequest{})
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"update record nil payload": {
 			err: func() error {
-				_, err := client.Domains.UpdateRecord(ctx, "dns-zone-1", 244042432, nil)
+				_, err := c.Domains.UpdateRecord(ctx, "dns-zone-1", 244042432, nil)
 				return err
 			}(),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"delete record empty zone id": {
 			err: func() error {
-				_, err := client.Domains.DeleteRecord(ctx, "", 244042432)
+				_, err := c.Domains.DeleteRecord(ctx, "", 244042432)
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"delete record empty record id": {
 			err: func() error {
-				_, err := client.Domains.DeleteRecord(ctx, "dns-zone-1", 0)
+				_, err := c.Domains.DeleteRecord(ctx, "dns-zone-1", 0)
 				return err
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"delete record negative record id": {
 			err: func() error {
-				_, err := client.Domains.DeleteRecord(ctx, "dns-zone-1", -1)
+				_, err := c.Domains.DeleteRecord(ctx, "dns-zone-1", -1)
 				return err
 			}(),
 			target: ErrEmptyArgument,

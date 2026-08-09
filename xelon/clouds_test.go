@@ -9,7 +9,7 @@ import (
 )
 
 func TestClouds_List(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("/clouds", func(w http.ResponseWriter, r *http.Request) {

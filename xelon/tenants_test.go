@@ -9,7 +9,7 @@ import (
 )
 
 func TestTenant_GetCurrent(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("/tenants/current", func(w http.ResponseWriter, r *http.Request) {

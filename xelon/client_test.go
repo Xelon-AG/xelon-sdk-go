@@ -24,12 +24,36 @@ var (
 	server *httptest.Server
 )
 
-func setup() {
+func newTestClient(t testing.TB, options ...ClientOption) *Client {
+	t.Helper()
+
+	rejectingHTTPClient := &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			err := fmt.Errorf("unexpected HTTP request: %s %s", req.Method, req.URL)
+			t.Error(err)
+			return nil, err
+		}),
+	}
+	defaults := []ClientOption{
+		WithBaseURL("https://example.invalid/"),
+		WithHTTPClient(rejectingHTTPClient),
+	}
+	defaults = append(defaults, options...)
+
+	return NewClient("auth-token", defaults...)
+}
+
+func setup(t testing.TB) {
+	t.Helper()
+
 	mux = http.NewServeMux()
 	server = httptest.NewServer(mux)
 
-	client = NewClient("auth-token")
-	client.baseURL, _ = url.Parse(fmt.Sprintf("%v/", server.URL))
+	client = newTestClient(
+		t,
+		WithBaseURL(server.URL+"/"),
+		WithHTTPClient(server.Client()),
+	)
 }
 
 func teardown() {
@@ -37,7 +61,7 @@ func teardown() {
 }
 
 func TestClient_NewClient(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	assert.NotNil(t, client.baseURL)
