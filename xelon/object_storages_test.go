@@ -12,7 +12,7 @@ import (
 )
 
 func TestObjectStorages_ListUsers(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /object-storages/users", func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func TestObjectStorages_ListUsers(t *testing.T) {
 }
 
 func TestObjectStorages_CreateUser(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /object-storages/users", func(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +76,7 @@ func TestObjectStorages_CreateUser(t *testing.T) {
 }
 
 func TestObjectStorages_CreateUser_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	type testCase struct {
@@ -114,7 +114,7 @@ func TestObjectStorages_CreateUser_MissingData(t *testing.T) {
 }
 
 func TestObjectStorages_UpdateUser(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /object-storages/users/00000000-0000-0000-0000-000000000000", func(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +138,7 @@ func TestObjectStorages_UpdateUser(t *testing.T) {
 }
 
 func TestObjectStorages_UpdateUser_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	type testCase struct {
@@ -176,7 +176,7 @@ func TestObjectStorages_UpdateUser_MissingData(t *testing.T) {
 }
 
 func TestObjectStorages_CreateUserToken(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /object-storages/users/00000000-0000-0000-0000-000000000000/tokens", func(w http.ResponseWriter, r *http.Request) {
@@ -199,7 +199,7 @@ func TestObjectStorages_CreateUserToken(t *testing.T) {
 }
 
 func TestObjectStorages_CreateUserToken_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	type testCase struct {
@@ -234,7 +234,7 @@ func TestObjectStorages_CreateUserToken_MissingData(t *testing.T) {
 }
 
 func TestObjectStorages_ListBuckets(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /object-storages/buckets", func(w http.ResponseWriter, r *http.Request) {
@@ -297,7 +297,7 @@ func TestObjectStorages_ListBuckets(t *testing.T) {
 }
 
 func TestObjectStorages_AllBuckets(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /object-storages/buckets", func(w http.ResponseWriter, r *http.Request) {
@@ -334,7 +334,7 @@ func TestObjectStorages_AllBuckets(t *testing.T) {
 }
 
 func TestObjectStorages_GetBucket(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /object-storages/buckets/test-bucket-0/00000000-0000-0000-0000-000000000000", func(w http.ResponseWriter, r *http.Request) {
@@ -366,7 +366,7 @@ func TestObjectStorages_GetBucket(t *testing.T) {
 }
 
 func TestObjectStorages_GetBucket_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /object-storages/buckets/test-bucket-0/00000000-0000-0000-0000-000000000000", func(w http.ResponseWriter, r *http.Request) {
@@ -382,7 +382,7 @@ func TestObjectStorages_GetBucket_MissingData(t *testing.T) {
 }
 
 func TestObjectStorages_CreateBucket(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /object-storages/buckets", func(w http.ResponseWriter, r *http.Request) {
@@ -447,7 +447,7 @@ func TestObjectStorages_CreateBucket_ZeroObjectLockRetentionDaysOmitted(t *testi
 }
 
 func TestObjectStorages_CreateBucket_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	type testCase struct {
@@ -486,7 +486,7 @@ func TestObjectStorages_CreateBucket_MissingData(t *testing.T) {
 }
 
 func TestObjectStorages_UpdateBucket(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /object-storages/buckets/zone1.4711.1", func(w http.ResponseWriter, r *http.Request) {
@@ -507,7 +507,7 @@ func TestObjectStorages_UpdateBucket(t *testing.T) {
 }
 
 func TestObjectStorages_DeleteBucket(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("DELETE /object-storages/buckets/test-bucket-0/00000000-0000-0000-0000-000000000000", func(w http.ResponseWriter, r *http.Request) {
@@ -522,7 +522,7 @@ func TestObjectStorages_DeleteBucket(t *testing.T) {
 }
 
 func TestObjectStorages_UpdateBucketVersioning(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /object-storages/buckets/test-bucket-0/00000000-0000-0000-0000-000000000000/versioning", func(w http.ResponseWriter, r *http.Request) {
@@ -545,7 +545,7 @@ func TestObjectStorages_UpdateBucketVersioning(t *testing.T) {
 }
 
 func TestObjectStorages_GetBucketIPRestrictions(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /object-storages/buckets/test-bucket-0/00000000-0000-0000-0000-000000000000/ip-restrictions", func(w http.ResponseWriter, r *http.Request) {
@@ -566,7 +566,7 @@ func TestObjectStorages_GetBucketIPRestrictions(t *testing.T) {
 }
 
 func TestObjectStorages_GetBucketIPRestrictions_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	type testCase struct {
@@ -601,7 +601,7 @@ func TestObjectStorages_GetBucketIPRestrictions_MissingData(t *testing.T) {
 }
 
 func TestObjectStorages_UpdateBucketIPRestrictions(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /object-storages/buckets/test-bucket-0/00000000-0000-0000-0000-000000000000/ip-restrictions", func(w http.ResponseWriter, r *http.Request) {
@@ -628,7 +628,7 @@ func TestObjectStorages_UpdateBucketIPRestrictions(t *testing.T) {
 }
 
 func TestObjectStorages_UpdateBucketIPRestrictions_DisableSendsEnabledFalse(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /object-storages/buckets/test-bucket-0/00000000-0000-0000-0000-000000000000/ip-restrictions", func(w http.ResponseWriter, r *http.Request) {
@@ -651,72 +651,73 @@ func TestObjectStorages_UpdateBucketIPRestrictions_DisableSendsEnabledFalse(t *t
 }
 
 func TestObjectStorages_BucketValidation(t *testing.T) {
+	c := newTestClient(t)
 	tests := map[string]struct {
 		err    error
 		target error
 	}{
 		"get bucket missing bucket name": {
-			err:    errorFromBucketGet(client.ObjectStorages.GetBucket(ctx, "", "00000000-0000-0000-0000-000000000000")),
+			err:    errorFromBucketGet(c.ObjectStorages.GetBucket(ctx, "", "00000000-0000-0000-0000-000000000000")),
 			target: ErrEmptyArgument,
 		},
 		"get bucket missing user id": {
-			err:    errorFromBucketGet(client.ObjectStorages.GetBucket(ctx, "test-bucket-0", "")),
+			err:    errorFromBucketGet(c.ObjectStorages.GetBucket(ctx, "test-bucket-0", "")),
 			target: ErrEmptyArgument,
 		},
 		"create bucket missing payload": {
-			err:    errorFromBucketCreate(client.ObjectStorages.CreateBucket(ctx, nil)),
+			err:    errorFromBucketCreate(c.ObjectStorages.CreateBucket(ctx, nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"update bucket missing bucket id": {
-			err:    errorFromResponse(client.ObjectStorages.UpdateBucket(ctx, "", &ObjectStorageBucketUpdateRequest{Name: "test-bucket-0"})),
+			err:    errorFromResponse(c.ObjectStorages.UpdateBucket(ctx, "", &ObjectStorageBucketUpdateRequest{Name: "test-bucket-0"})),
 			target: ErrEmptyArgument,
 		},
 		"update bucket missing payload": {
-			err:    errorFromResponse(client.ObjectStorages.UpdateBucket(ctx, "zone1.4711.1", nil)),
+			err:    errorFromResponse(c.ObjectStorages.UpdateBucket(ctx, "zone1.4711.1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"delete bucket missing bucket name": {
-			err:    errorFromResponse(client.ObjectStorages.DeleteBucket(ctx, "", "00000000-0000-0000-0000-000000000000")),
+			err:    errorFromResponse(c.ObjectStorages.DeleteBucket(ctx, "", "00000000-0000-0000-0000-000000000000")),
 			target: ErrEmptyArgument,
 		},
 		"delete bucket missing user id": {
-			err:    errorFromResponse(client.ObjectStorages.DeleteBucket(ctx, "test-bucket-0", "")),
+			err:    errorFromResponse(c.ObjectStorages.DeleteBucket(ctx, "test-bucket-0", "")),
 			target: ErrEmptyArgument,
 		},
 		"update versioning missing bucket name": {
-			err: errorFromResponse(client.ObjectStorages.UpdateBucketVersioning(ctx, "", "00000000-0000-0000-0000-000000000000", &ObjectStorageBucketVersioningUpdateRequest{
+			err: errorFromResponse(c.ObjectStorages.UpdateBucketVersioning(ctx, "", "00000000-0000-0000-0000-000000000000", &ObjectStorageBucketVersioningUpdateRequest{
 				VersioningEnabled: true,
 			})),
 			target: ErrEmptyArgument,
 		},
 		"update versioning missing user id": {
-			err: errorFromResponse(client.ObjectStorages.UpdateBucketVersioning(ctx, "test-bucket-0", "", &ObjectStorageBucketVersioningUpdateRequest{
+			err: errorFromResponse(c.ObjectStorages.UpdateBucketVersioning(ctx, "test-bucket-0", "", &ObjectStorageBucketVersioningUpdateRequest{
 				VersioningEnabled: true,
 			})),
 			target: ErrEmptyArgument,
 		},
 		"update versioning missing payload": {
-			err:    errorFromResponse(client.ObjectStorages.UpdateBucketVersioning(ctx, "test-bucket-0", "00000000-0000-0000-0000-000000000000", nil)),
+			err:    errorFromResponse(c.ObjectStorages.UpdateBucketVersioning(ctx, "test-bucket-0", "00000000-0000-0000-0000-000000000000", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"get ip restrictions missing bucket name": {
-			err:    errorFromIPRestrictionsGet(client.ObjectStorages.GetBucketIPRestrictions(ctx, "", "00000000-0000-0000-0000-000000000000")),
+			err:    errorFromIPRestrictionsGet(c.ObjectStorages.GetBucketIPRestrictions(ctx, "", "00000000-0000-0000-0000-000000000000")),
 			target: ErrEmptyArgument,
 		},
 		"get ip restrictions missing user id": {
-			err:    errorFromIPRestrictionsGet(client.ObjectStorages.GetBucketIPRestrictions(ctx, "test-bucket-0", "")),
+			err:    errorFromIPRestrictionsGet(c.ObjectStorages.GetBucketIPRestrictions(ctx, "test-bucket-0", "")),
 			target: ErrEmptyArgument,
 		},
 		"update ip restrictions missing bucket name": {
-			err:    errorFromResponse(client.ObjectStorages.UpdateBucketIPRestrictions(ctx, "", "00000000-0000-0000-0000-000000000000", &ObjectStorageBucketIPRestrictionsUpdateRequest{Enabled: true})),
+			err:    errorFromResponse(c.ObjectStorages.UpdateBucketIPRestrictions(ctx, "", "00000000-0000-0000-0000-000000000000", &ObjectStorageBucketIPRestrictionsUpdateRequest{Enabled: true})),
 			target: ErrEmptyArgument,
 		},
 		"update ip restrictions missing user id": {
-			err:    errorFromResponse(client.ObjectStorages.UpdateBucketIPRestrictions(ctx, "test-bucket-0", "", &ObjectStorageBucketIPRestrictionsUpdateRequest{Enabled: true})),
+			err:    errorFromResponse(c.ObjectStorages.UpdateBucketIPRestrictions(ctx, "test-bucket-0", "", &ObjectStorageBucketIPRestrictionsUpdateRequest{Enabled: true})),
 			target: ErrEmptyArgument,
 		},
 		"update ip restrictions missing payload": {
-			err:    errorFromResponse(client.ObjectStorages.UpdateBucketIPRestrictions(ctx, "test-bucket-0", "00000000-0000-0000-0000-000000000000", nil)),
+			err:    errorFromResponse(c.ObjectStorages.UpdateBucketIPRestrictions(ctx, "test-bucket-0", "00000000-0000-0000-0000-000000000000", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 	}

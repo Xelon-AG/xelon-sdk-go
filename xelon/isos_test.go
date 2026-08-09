@@ -18,7 +18,7 @@ import (
 )
 
 func TestISOs_List(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("/isos", func(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func TestISOs_List(t *testing.T) {
 }
 
 func TestISOs_Upload(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	fileBytes := []byte{0x00, 0x01, 0x02, 0xff, 'I', 'S', 'O'}
@@ -112,7 +112,7 @@ func TestISOs_Upload(t *testing.T) {
 }
 
 func TestISOs_UploadOmitsEmptyOptionalFields(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /isos/upload", func(w http.ResponseWriter, r *http.Request) {
@@ -275,7 +275,7 @@ func TestISOs_UploadResponseErrors(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			setup()
+			setup(t)
 			defer teardown()
 			mux.HandleFunc("POST /isos/upload", func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(test.statusCode)

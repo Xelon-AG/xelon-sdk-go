@@ -12,7 +12,7 @@ import (
 )
 
 func TestTenantUsers_List(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /tenants/tenant-1/users", func(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +58,7 @@ func TestTenantUsers_List(t *testing.T) {
 }
 
 func TestTenantUsers_All(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /tenants/tenant-1/users", func(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +108,7 @@ func TestTenantUsers_All(t *testing.T) {
 }
 
 func TestTenantUsers_Get(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /tenants/tenant-1/users/user-1", func(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +148,7 @@ func TestTenantUsers_Get(t *testing.T) {
 }
 
 func TestTenantUsers_Get_SoftDeletedUser(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /tenants/tenant-1/users/user-2", func(w http.ResponseWriter, r *http.Request) {
@@ -188,7 +188,7 @@ func TestTenantUsers_Get_SoftDeletedUser(t *testing.T) {
 }
 
 func TestTenantUsers_Create(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /tenants/tenant-1/users", func(w http.ResponseWriter, r *http.Request) {
@@ -262,7 +262,7 @@ func TestTenantUsers_Create(t *testing.T) {
 }
 
 func TestTenantUsers_Update(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("PUT /tenants/tenant-1/users/user-1", func(w http.ResponseWriter, r *http.Request) {
@@ -315,7 +315,7 @@ func TestTenantUsers_Update(t *testing.T) {
 }
 
 func TestTenantUsers_Delete(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("DELETE /tenants/tenant-1/users/user-1", func(w http.ResponseWriter, r *http.Request) {
@@ -331,7 +331,7 @@ func TestTenantUsers_Delete(t *testing.T) {
 }
 
 func TestTenantUsers_Restore(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /tenants/tenant-1/users/restore", func(w http.ResponseWriter, r *http.Request) {
@@ -354,7 +354,7 @@ func TestTenantUsers_Restore(t *testing.T) {
 }
 
 func TestTenantUsers_UpdatePassword(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /tenants/tenant-1/users/user-1/password", func(w http.ResponseWriter, r *http.Request) {
@@ -381,7 +381,7 @@ func TestTenantUsers_UpdatePassword(t *testing.T) {
 }
 
 func TestTenantUsers_ListAvailablePermissions(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("GET /tenants/tenant-1/users/permissions", func(w http.ResponseWriter, r *http.Request) {
@@ -404,7 +404,7 @@ func TestTenantUsers_ListAvailablePermissions(t *testing.T) {
 }
 
 func TestTenantUsers_UpdatePermissions(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	mux.HandleFunc("POST /tenants/tenant-1/users/user-1/permissions", func(w http.ResponseWriter, r *http.Request) {
@@ -434,7 +434,7 @@ func TestTenantUsers_UpdatePermissions(t *testing.T) {
 }
 
 func TestTenantUsers_MissingData(t *testing.T) {
-	setup()
+	setup(t)
 	defer teardown()
 
 	tests := map[string]struct {
@@ -479,91 +479,92 @@ func TestTenantUsers_MissingData(t *testing.T) {
 }
 
 func TestTenantUsers_ValidationErrors(t *testing.T) {
+	c := newTestClient(t)
 	tests := map[string]struct {
 		err    error
 		target error
 	}{
 		"list empty tenant id": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.List(ctx, "", nil)),
+			err:    errorFromTenantUsersResult(c.TenantUsers.List(ctx, "", nil)),
 			target: ErrEmptyArgument,
 		},
 		"all empty tenant id": {
 			err: func() error {
-				_, errf := client.TenantUsers.All(ctx, "", nil)
+				_, errf := c.TenantUsers.All(ctx, "", nil)
 				return errf()
 			}(),
 			target: ErrEmptyArgument,
 		},
 		"get empty tenant id": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.Get(ctx, "", "user-1")),
+			err:    errorFromTenantUsersResult(c.TenantUsers.Get(ctx, "", "user-1")),
 			target: ErrEmptyArgument,
 		},
 		"get empty user id": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.Get(ctx, "tenant-1", "")),
+			err:    errorFromTenantUsersResult(c.TenantUsers.Get(ctx, "tenant-1", "")),
 			target: ErrEmptyArgument,
 		},
 		"create empty tenant id": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.Create(ctx, "", &TenantUserCreateRequest{})),
+			err:    errorFromTenantUsersResult(c.TenantUsers.Create(ctx, "", &TenantUserCreateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"create nil payload": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.Create(ctx, "tenant-1", nil)),
+			err:    errorFromTenantUsersResult(c.TenantUsers.Create(ctx, "tenant-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"update empty tenant id": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.Update(ctx, "", "user-1", &TenantUserUpdateRequest{})),
+			err:    errorFromTenantUsersResult(c.TenantUsers.Update(ctx, "", "user-1", &TenantUserUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update empty user id": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.Update(ctx, "tenant-1", "", &TenantUserUpdateRequest{})),
+			err:    errorFromTenantUsersResult(c.TenantUsers.Update(ctx, "tenant-1", "", &TenantUserUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update nil payload": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.Update(ctx, "tenant-1", "user-1", nil)),
+			err:    errorFromTenantUsersResult(c.TenantUsers.Update(ctx, "tenant-1", "user-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"delete empty tenant id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.Delete(ctx, "", "user-1")),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.Delete(ctx, "", "user-1")),
 			target: ErrEmptyArgument,
 		},
 		"delete empty user id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.Delete(ctx, "tenant-1", "")),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.Delete(ctx, "tenant-1", "")),
 			target: ErrEmptyArgument,
 		},
 		"restore empty tenant id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.Restore(ctx, "", "user-1")),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.Restore(ctx, "", "user-1")),
 			target: ErrEmptyArgument,
 		},
 		"restore empty user id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.Restore(ctx, "tenant-1", "")),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.Restore(ctx, "tenant-1", "")),
 			target: ErrEmptyArgument,
 		},
 		"update password empty tenant id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePassword(ctx, "", "user-1", &TenantUserPasswordUpdateRequest{})),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.UpdatePassword(ctx, "", "user-1", &TenantUserPasswordUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update password empty user id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePassword(ctx, "tenant-1", "", &TenantUserPasswordUpdateRequest{})),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.UpdatePassword(ctx, "tenant-1", "", &TenantUserPasswordUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update password nil payload": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePassword(ctx, "tenant-1", "user-1", nil)),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.UpdatePassword(ctx, "tenant-1", "user-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 		"list available permissions empty tenant id": {
-			err:    errorFromTenantUsersResult(client.TenantUsers.ListAvailablePermissions(ctx, "")),
+			err:    errorFromTenantUsersResult(c.TenantUsers.ListAvailablePermissions(ctx, "")),
 			target: ErrEmptyArgument,
 		},
 		"update permissions empty tenant id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePermissions(ctx, "", "user-1", &TenantUserPermissionsUpdateRequest{})),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.UpdatePermissions(ctx, "", "user-1", &TenantUserPermissionsUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update permissions empty user id": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePermissions(ctx, "tenant-1", "", &TenantUserPermissionsUpdateRequest{})),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.UpdatePermissions(ctx, "tenant-1", "", &TenantUserPermissionsUpdateRequest{})),
 			target: ErrEmptyArgument,
 		},
 		"update permissions nil payload": {
-			err:    errorFromTenantUsersResponse(client.TenantUsers.UpdatePermissions(ctx, "tenant-1", "user-1", nil)),
+			err:    errorFromTenantUsersResponse(c.TenantUsers.UpdatePermissions(ctx, "tenant-1", "user-1", nil)),
 			target: ErrEmptyPayloadNotAllowed,
 		},
 	}

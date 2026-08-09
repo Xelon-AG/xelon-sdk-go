@@ -290,6 +290,10 @@ type KubernetesClusterNodePoolUpdateRequest struct {
 	RAM                  int    `json:"memory"`
 }
 
+type kubernetesClusterNodePoolScaleRequest struct {
+	DesiredNodeCount int `json:"desiredNodeCount"`
+}
+
 type kubernetesClusterNodePoolRoot struct {
 	KubernetesClusterNodePool *KubernetesClusterNodePool `json:"data,omitempty"`
 	Message                   string                     `json:"message,omitempty"`
