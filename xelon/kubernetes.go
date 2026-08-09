@@ -432,6 +432,26 @@ func (s *KubernetesService) UpdateNodePool(ctx context.Context, kubernetesCluste
 	return s.client.Do(ctx, req, nil)
 }
 
+// ScaleNodePool sets the desired node count for a node pool. Scaling is asynchronous;
+// a successful response confirms the desired count was accepted, not that scaling has completed.
+func (s *KubernetesService) ScaleNodePool(ctx context.Context, kubernetesClusterID, nodePoolID string, desiredNodeCount int) (*Response, error) {
+	if kubernetesClusterID == "" {
+		return nil, fmt.Errorf("kubernetes cluster id: %w", ErrEmptyArgument)
+	}
+	if nodePoolID == "" {
+		return nil, fmt.Errorf("node pool id: %w", ErrEmptyArgument)
+	}
+
+	path := fmt.Sprintf("%v/%v/pools/%v/scale", kubernetesBasePath, kubernetesClusterID, nodePoolID)
+	scaleRequest := &kubernetesClusterNodePoolScaleRequest{DesiredNodeCount: desiredNodeCount}
+	req, err := s.client.NewRequest(http.MethodPut, path, scaleRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
 // DeleteNodePool removes the node pool.
 func (s *KubernetesService) DeleteNodePool(ctx context.Context, kubernetesClusterID, nodePoolID string) (*Response, error) {
 	if kubernetesClusterID == "" {
