@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	ErrEmptyArgument          = errors.New("argument cannot be empty")
-	ErrEmptyPayloadNotAllowed = errors.New("payload cannot be empty")
+	ErrAmbiguousBackupPlanAssignment = errors.New("device backup plan assignment is ambiguous")
+	ErrEmptyArgument                 = errors.New("argument cannot be empty")
+	ErrEmptyPayloadNotAllowed        = errors.New("payload cannot be empty")
 )
 
 type ErrorResponse struct {
