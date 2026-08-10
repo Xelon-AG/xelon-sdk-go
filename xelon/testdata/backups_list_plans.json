@@ -1,0 +1,14 @@
+{
+  "data": [
+    {
+      "id": 17,
+      "name": "Daily Backup",
+      "tag": "urn:vmomi:InventoryServiceTag:daily-plan-id:GLOBAL"
+    },
+    {
+      "id": 23,
+      "name": "Weekly Backup",
+      "tag": "urn:vmomi:InventoryServiceTag:weekly-plan-id:GLOBAL"
+    }
+  ]
+}
