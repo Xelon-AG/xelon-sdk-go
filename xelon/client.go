@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	libraryVersion = "1.14.4"
+	libraryVersion = "1.15.0"
 
 	defaultBaseURL          = "https://hq.xelon.ch/api/v2/"
 	defaultISOUploadTimeout = 2 * time.Minute
