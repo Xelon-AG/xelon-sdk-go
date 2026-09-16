@@ -1,0 +1,16 @@
+[
+  {
+    "identifier": "ssh-key-1",
+    "name": "first key",
+    "sshKey": "ssh-ed25519 AAAA-first",
+    "createdAt": "2026-09-14T10:00:00Z",
+    "createdBy": "Alice"
+  },
+  {
+    "identifier": "ssh-key-2",
+    "name": "second key",
+    "sshKey": "ssh-ed25519 AAAA-second",
+    "createdAt": "2026-09-15T11:00:00Z",
+    "createdBy": "Bob"
+  }
+]

@@ -395,3 +395,49 @@ func (s *DevicesService) Stop(ctx context.Context, deviceID string) (*Response, 
 
 	return s.client.Do(ctx, req, nil)
 }
+
+// ListSSHKeys lists SSH keys assigned to a device.
+func (s *DevicesService) ListSSHKeys(ctx context.Context, deviceID string) ([]SSHKey, *Response, error) {
+	if deviceID == "" {
+		return nil, nil, fmt.Errorf("device id: %w", ErrEmptyArgument)
+	}
+
+	path := fmt.Sprintf("%v/%v/ssh-key", deviceBasePath, deviceID)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var sshKeys []SSHKey
+	resp, err := s.client.Do(ctx, req, &sshKeys)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return sshKeys, resp, nil
+}
+
+// AddSSHKey assigns an SSH key to a device.
+func (s *DevicesService) AddSSHKey(ctx context.Context, deviceID, sshKeyID string) (*Response, error) {
+	if deviceID == "" {
+		return nil, fmt.Errorf("device id: %w", ErrEmptyArgument)
+	}
+	if sshKeyID == "" {
+		return nil, fmt.Errorf("ssh key id: %w", ErrEmptyArgument)
+	}
+
+	path := fmt.Sprintf("%v/%v/ssh-key", deviceBasePath, deviceID)
+
+	payload := struct {
+		SSHKeyID string `json:"sshKeyId"`
+	}{
+		SSHKeyID: sshKeyID,
+	}
+	req, err := s.client.NewRequest(http.MethodPost, path, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	root := new(deviceRoot)
+	return s.client.Do(ctx, req, root)
+}
