@@ -135,6 +135,16 @@ func TestDevices_AddSSHKey(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+func TestDevices_DeviceCreateRequest_SSHKeyIDs(t *testing.T) {
+	withKeys, err := json.Marshal(&DeviceCreateRequest{SSHKeyIDs: []string{"ssh-key-1", "ssh-key-2"}})
+	assert.NoError(t, err)
+	assert.Contains(t, string(withKeys), `"sshKeyIds":["ssh-key-1","ssh-key-2"]`)
+
+	withoutKeys, err := json.Marshal(&DeviceCreateRequest{})
+	assert.NoError(t, err)
+	assert.NotContains(t, string(withoutKeys), "sshKeyIds")
+}
+
 func TestDevices_RemoveSSHKey(t *testing.T) {
 	setup(t)
 	defer teardown()
