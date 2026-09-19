@@ -135,6 +135,24 @@ func TestDevices_AddSSHKey(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+func TestDevices_RemoveSSHKey(t *testing.T) {
+	setup(t)
+	defer teardown()
+
+	mux.HandleFunc("DELETE /devices/device-1/ssh-key/ssh-key-1", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodDelete, r.Method)
+		assert.Equal(t, "/devices/device-1/ssh-key/ssh-key-1", r.URL.Path)
+
+		_, _ = io.WriteString(w, `{"message":"SSH key removal has been started."}`)
+	})
+
+	resp, err := client.Devices.RemoveSSHKey(ctx, "device-1", "ssh-key-1")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
 func TestDevices_SSHKeyValidationErrors(t *testing.T) {
 	c := newTestClient(t)
 
@@ -159,6 +177,20 @@ func TestDevices_SSHKeyValidationErrors(t *testing.T) {
 		"add empty ssh key id": {
 			err: func() error {
 				_, err := c.Devices.AddSSHKey(ctx, "device-1", "")
+				return err
+			}(),
+			target: ErrEmptyArgument,
+		},
+		"remove empty device id": {
+			err: func() error {
+				_, err := c.Devices.RemoveSSHKey(ctx, "", "ssh-key-1")
+				return err
+			}(),
+			target: ErrEmptyArgument,
+		},
+		"remove empty ssh key id": {
+			err: func() error {
+				_, err := c.Devices.RemoveSSHKey(ctx, "device-1", "")
 				return err
 			}(),
 			target: ErrEmptyArgument,
