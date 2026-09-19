@@ -441,3 +441,22 @@ func (s *DevicesService) AddSSHKey(ctx context.Context, deviceID, sshKeyID strin
 	root := new(deviceRoot)
 	return s.client.Do(ctx, req, root)
 }
+
+// RemoveSSHKey removes an SSH key from a device. The removal runs asynchronously
+// in the guest; the key disappears from ListSSHKeys once the guest confirms it.
+func (s *DevicesService) RemoveSSHKey(ctx context.Context, deviceID, sshKeyID string) (*Response, error) {
+	if deviceID == "" {
+		return nil, fmt.Errorf("device id: %w", ErrEmptyArgument)
+	}
+	if sshKeyID == "" {
+		return nil, fmt.Errorf("ssh key id: %w", ErrEmptyArgument)
+	}
+
+	path := fmt.Sprintf("%v/%v/ssh-key/%v", deviceBasePath, deviceID, sshKeyID)
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
