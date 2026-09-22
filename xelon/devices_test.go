@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDevices_DeviceNetworkIPAddresses_UnmarshalJSON(t *testing.T) {
@@ -83,6 +84,66 @@ func TestDevices_DeviceNetworkIPAddresses_UnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestDevices_Create_WithSSHKeyIDs(t *testing.T) {
+	tests := []struct {
+		name            string
+		sshKeyIDs       []string
+		expectedPresent bool
+	}{
+		{
+			name:            "one SSH key",
+			sshKeyIDs:       []string{"key-1"},
+			expectedPresent: true,
+		},
+		{
+			name:            "multiple SSH keys",
+			sshKeyIDs:       []string{"key-1", "key-2"},
+			expectedPresent: true,
+		},
+		{
+			name:      "nil SSH keys",
+			sshKeyIDs: nil,
+		},
+		{
+			name:      "empty SSH keys",
+			sshKeyIDs: []string{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			setup(t)
+			defer teardown()
+
+			mux.HandleFunc("POST /devices", func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPost, r.Method)
+				assert.Equal(t, "/devices", r.URL.Path)
+
+				var payload map[string]json.RawMessage
+				err := json.NewDecoder(r.Body).Decode(&payload)
+				assert.NoError(t, err)
+
+				rawSSHKeyIDs, present := payload["sshKeyIds"]
+				assert.Equal(t, test.expectedPresent, present)
+				if present {
+					var actualSSHKeyIDs []string
+					err := json.Unmarshal(rawSSHKeyIDs, &actualSSHKeyIDs)
+					assert.NoError(t, err)
+					assert.Equal(t, test.sshKeyIDs, actualSSHKeyIDs)
+				}
+
+				_, _ = io.WriteString(w, `{"data":{"identifier":"device-1"}}`)
+			})
+
+			device, resp, err := client.Devices.Create(ctx, &DeviceCreateRequest{SSHKeyIDs: test.sshKeyIDs})
+
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, &Device{ID: "device-1"}, device)
+		})
+	}
+}
+
 func TestDevices_ListSSHKeys(t *testing.T) {
 	setup(t)
 	defer teardown()
@@ -133,16 +194,6 @@ func TestDevices_AddSSHKey(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
-func TestDevices_DeviceCreateRequest_SSHKeyIDs(t *testing.T) {
-	withKeys, err := json.Marshal(&DeviceCreateRequest{SSHKeyIDs: []string{"ssh-key-1", "ssh-key-2"}})
-	assert.NoError(t, err)
-	assert.Contains(t, string(withKeys), `"sshKeyIds":["ssh-key-1","ssh-key-2"]`)
-
-	withoutKeys, err := json.Marshal(&DeviceCreateRequest{})
-	assert.NoError(t, err)
-	assert.NotContains(t, string(withoutKeys), "sshKeyIds")
 }
 
 func TestDevices_RemoveSSHKey(t *testing.T) {
