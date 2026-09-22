@@ -102,8 +102,7 @@ type DeviceCreateRequest struct {
 	RAM                  int                   `json:"ram"`
 	ScriptID             string                `json:"scriptId,omitempty"`
 	SendEmail            bool                  `json:"sendEmail,omitempty"`
-	SSHKeyID             string                `json:"sshKeyId,omitempty"`
-	SSHKeyIDs            []string              `json:"sshKeyIds,omitempty"` // Several keys at once; mutually exclusive with SSHKeyID.
+	SSHKeyIDs            []string              `json:"sshKeyIds,omitempty"`
 	SwapDiskSize         int                   `json:"swapDiskSize"`
 	TemplateID           string                `json:"templateId"`
 	TenantID             string                `json:"tenantIdentifier"`
