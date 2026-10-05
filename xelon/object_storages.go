@@ -232,6 +232,11 @@ func (s *ObjectStoragesService) DeleteUserToken(ctx context.Context, objectStora
 	return s.client.Do(ctx, req, nil)
 }
 
+const (
+	ObjectStorageBucketVersioningStatusPending = "pending"
+	ObjectStorageBucketVersioningStatusDone    = "done"
+)
+
 // ObjectStorageBucket represents a Xelon bucket for S3-compatible object storage.
 type ObjectStorageBucket struct {
 	CreatedAt                *time.Time `json:"createdAt,omitempty"`
@@ -247,6 +252,7 @@ type ObjectStorageBucket struct {
 	S3Endpoints              []string   `json:"s3endpoints,omitempty"`
 	Tenant                   *Tenant    `json:"tenant,omitempty"`
 	VersioningEnabled        bool       `json:"isVersioning,omitempty"`
+	VersioningStatus         string     `json:"versioningStatus"`
 }
 
 type ObjectStorageBucketCreateRequest struct {

@@ -14,6 +14,7 @@
     "isObjectLock": false,
     "retentionPeriodDays": 0,
     "isVersioning": true,
+    "versioningStatus": "done",
     "s3endpoints": [
       "https:\/\/ch1-s3.xelon.io"
     ],
