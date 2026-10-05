@@ -356,6 +356,7 @@ func TestObjectStorages_GetBucket(t *testing.T) {
 		S3Endpoints:              []string{"https://ch1-s3.xelon.io"},
 		Tenant:                   &Tenant{ID: "000000000", Name: "test-tenant-0"},
 		VersioningEnabled:        true,
+		VersioningStatus:         "done",
 	}
 
 	actualBucket, resp, err := client.ObjectStorages.GetBucket(ctx, "test-bucket-0", "00000000-0000-0000-0000-000000000000")
@@ -414,7 +415,8 @@ func TestObjectStorages_CreateBucket(t *testing.T) {
 		RegionReplicationEnabled: true,
 		S3Endpoints:              []string{"https://ch1-s3.xelon.io"},
 		Tenant:                   &Tenant{ID: "000000000", Name: "test-tenant-0"},
-		VersioningEnabled:        true,
+		VersioningEnabled:        false,
+		VersioningStatus:         "pending",
 	}
 
 	actualBucket, resp, err := client.ObjectStorages.CreateBucket(ctx, &ObjectStorageBucketCreateRequest{

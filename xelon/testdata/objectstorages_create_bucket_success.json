@@ -13,7 +13,8 @@
     },
     "isObjectLock": false,
     "retentionPeriodDays": 30,
-    "isVersioning": true,
+    "isVersioning": false,
+    "versioningStatus": "pending",
     "s3endpoints": [
       "https:\/\/ch1-s3.xelon.io"
     ],
