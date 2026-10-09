@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"iter"
 	"net/http"
 	"time"
 )
@@ -143,8 +144,9 @@ type FirewallUpdateForwardingRuleRequest struct {
 
 // FirewallListOptions specifies the optional parameters to the FirewallsService.List.
 type FirewallListOptions struct {
-	Sort   string `url:"sort,omitempty"`
-	Search string `url:"search,omitempty"`
+	Search    string   `url:"search,omitempty"`
+	Sort      string   `url:"sort,omitempty"`
+	TenantIDs []string `url:"tenantIds[],omitempty"`
 
 	ListOptions
 }
@@ -188,6 +190,55 @@ func (s *FirewallsService) List(ctx context.Context, opts *FirewallListOptions) 
 	}
 
 	return root.Firewalls, resp, nil
+}
+
+// All returns an iterator to paginate over all firewalls.
+//
+// The return iterator can be used in a for...range loop to easily process all firewalls.
+func (s *FirewallsService) All(ctx context.Context, opts *FirewallListOptions) (iter.Seq2[Firewall, *Response], func() error) {
+	options := FirewallListOptions{}
+	if opts != nil {
+		options = *opts
+	}
+
+	var iterErr error
+	seq := func(yield func(Firewall, *Response) bool) {
+		if options.Page == 0 {
+			options.Page = 1
+		}
+		if options.PerPage == 0 {
+			options.PerPage = 10
+		}
+
+		for {
+			select {
+			case <-ctx.Done():
+				iterErr = ctx.Err()
+				return
+			default:
+			}
+
+			firewalls, resp, err := s.List(ctx, &options)
+			if err != nil {
+				iterErr = err
+				return
+			}
+
+			for _, firewall := range firewalls {
+				if !yield(firewall, resp) {
+					return
+				}
+			}
+
+			if resp.Meta == nil || options.Page >= resp.Meta.LastPage {
+				return
+			}
+
+			options.Page++
+		}
+	}
+
+	return seq, func() error { return iterErr }
 }
 
 // Get provides detailed information for firewall identified by id.
